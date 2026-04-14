@@ -1,33 +1,32 @@
-import { Injectable } from '@nestjs/common';
-import { Session } from './session.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Session } from './entities/sessions.entity';
 import { CreateSessionDto } from './create-session.dto';
 
 @Injectable()
 export class SessionService {
-    private sessions: Session[] = [];
+  constructor(
+    @InjectRepository(Session)
+    private readonly sessionRepository: Repository<Session>,
+  ) { }
 
-  createSession(dto: CreateSessionDto): Session {
-    const session = new Session(
-      dto.title,
-      dto.course_id,
-      dto.venue,
-      dto.start,
-      dto.end,
-      dto.notes
-    );
-
-    this.sessions.push(session);
-    return session;
+  async createSession(dto: CreateSessionDto): Promise<Session> {
+    const session = this.sessionRepository.create(dto);
+    return await this.sessionRepository.save(session);
   }
 
-  getAllSessions(): Session[] {
-    return this.sessions;
+  async getAllSessions(): Promise<Session[]> {
+    return await this.sessionRepository.find({ relations: ['course', 'created_by_user'] });
   }
 
-  getSessionById(id: number): Session | string {
-    const session = this.sessions[id];
+  async getSessionById(id: string): Promise<Session> {
+    const session = await this.sessionRepository.findOne({
+      where: { id },
+      relations: ['course', 'created_by_user'],
+    });
     if (!session) {
-      return 'Session not found';
+      throw new NotFoundException(`Session with ID ${id} not found`);
     }
     return session;
   }

@@ -1,8 +1,8 @@
 export class CreateSessionDto {
   title: string;
-  course_id: number;
+  course_id: string;
   venue: string;
-  start: string;
-  end: string;
-  notes: string;
+  scheduled_start: Date;
+  scheduled_end: Date;
+  created_by: string;
 }

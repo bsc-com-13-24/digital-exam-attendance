@@ -4,6 +4,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SessionModule } from './session/session.module';
+import { OfflineModule } from './offline/offline.module';
+import { AttendanceModule } from './attendance/attendance.module';
+import { AuthModule } from './auth/auth.module';
+import { User } from './auth/entities/users.entity';
+import { Role } from './auth/entities/roles.entity';
+import { UserRole } from './auth/entities/user-roles.entity';
+import { Course } from './session/entities/courses.entity';
+import { Session } from './session/entities/sessions.entity';
+import { SessionStudent } from './session/entities/session-students.entity';
+import { AttendanceRecord } from './attendance/entities/attendance-records.entity';
+import { AuditLog } from './attendance/entities/audit-logs.entity';
 
 @Module({
   imports: [
@@ -19,10 +30,25 @@ import { SessionModule } from './session/session.module';
         password: config.get('DB_PASSWORD'),
         serviceName: config.get('DB_SERVICE_NAME'),
         synchronize: config.get('DB_SYNCHRONIZE') === 'true',
-        entities: [users, roles, user_roles, courses, sessions, session_students, attendance_records, audit_logs],
+        entities: [
+          User,
+          Role,
+          UserRole,
+          Course,
+          Session,
+          SessionStudent,
+          AttendanceRecord,
+          AuditLog,
+        ],
         logging: true,
       }),
     }),
-  ]
+    AuthModule,
+    SessionModule,
+    AttendanceModule,
+    OfflineModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
