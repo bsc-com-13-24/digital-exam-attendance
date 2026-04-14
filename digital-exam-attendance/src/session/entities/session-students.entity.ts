@@ -14,28 +14,28 @@ import { User } from '../../auth/entities/users.entity';
 @Unique(['session_id', 'student_id'])
 export class SessionStudent {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Session, (session) => session.students, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'session_id' })
-  session: Session;
+  session!: Session;
 
   @Column({ name: 'session_id' })
-  session_id: string;
+  session_id!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'student_id' })
-  student: User;
+  student!: User;
 
   @Column({ name: 'student_id' })
-  student_id: string;
+  student_id!: string;
 
   @Column({ name: 'student_number', length: 50 })
-  student_number: string;
+  student_number!: string;
 
   @Column({ name: 'full_name', length: 255 })
-  full_name: string;
+  full_name!: string;
 
   @CreateDateColumn({ name: 'added_at' })
-  added_at: Date;
+  added_at!: Date;
 }

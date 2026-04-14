@@ -15,43 +15,43 @@ import { User } from '../../auth/entities/users.entity';
 @Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ length: 255 })
-  title: string;
+  title!: string;
 
   @Column({ name: 'venue', length: 255 })
-  venue: string;
+  venue!: string;
 
   @Column({ name: 'scheduled_start', type: 'timestamp' })
-  scheduled_start: Date;
+  scheduled_start!: Date;
 
   @Column({ name: 'scheduled_end', type: 'timestamp' })
-  scheduled_end: Date;
+  scheduled_end!: Date;
 
   @Column({ length: 20, default: 'upcoming' })
-  status: string;
+  status!: string;
 
   @ManyToOne(() => Course, (course) => course.sessions)
   @JoinColumn({ name: 'course_id' })
-  course: Course;
+  course!: Course;
 
   @Column({ name: 'course_id' })
-  course_id: string;
+  course_id!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })
-  created_by_user: User;
+  created_by_user!: User;
 
   @Column({ name: 'created_by' })
-  created_by: string;
+  created_by!: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  created_at!: Date;
 
   @OneToMany(() => SessionStudent, (sessionStudent) => sessionStudent.session)
-  students: SessionStudent[];
+  students!: SessionStudent[];
 
   @OneToMany(() => AttendanceRecord, (record) => record.session)
-  attendance_records: AttendanceRecord[];
+  attendance_records!: AttendanceRecord[];
 }

@@ -16,51 +16,51 @@ import { SessionStudent } from '../../session/entities/session-students.entity';
 @Unique(['session_id', 'student_id'])
 export class AttendanceRecord {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Session, (session) => session.attendance_records, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'session_id' })
-  session: Session;
+  session!: Session;
 
   @Column({ name: 'session_id' })
-  session_id: string;
+  session_id!: string;
 
   @ManyToOne(() => SessionStudent, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'session_student_id' })
-  session_student: SessionStudent;
+  session_student!: SessionStudent;
 
   @Column({ name: 'session_student_id' })
-  session_student_id: string;
+  session_student_id!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'student_id' })
-  student: User;
+  student!: User;
 
   @Column({ name: 'student_id' })
-  student_id: string;
+  student_id!: string;
 
   @Column({ length: 20, default: 'absent' })
-  status: string;
+  status!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'marked_by' })
-  marked_by_user: User;
+  marked_by_user!: User;
 
   @Column({ name: 'marked_by', nullable: true })
-  marked_by: string;
+  marked_by!: string;
 
   @Column({ name: 'marked_at', type: 'timestamp', nullable: true })
-  marked_at: Date;
+  marked_at!: Date;
 
   @Column({ length: 20, nullable: true })
-  method: string;
+  method!: string;
 
   @Column({ type: 'text', nullable: true })
-  remarks: string;
+  remarks!: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updated_at: Date;
+  updated_at!: Date;
 }
