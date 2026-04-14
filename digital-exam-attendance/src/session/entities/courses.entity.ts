@@ -4,17 +4,17 @@ import { Session } from './sessions.entity';
 @Entity('courses')
 export class Course {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true, length: 20 })
-  code: string;
+  code!: string;
 
   @Column({ length: 255 })
-  name: string;
+  name!: string;
 
   @Column({ name: 'is_active', default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @OneToMany(() => Session, (session) => session.course)
-  sessions: Session[];
+  sessions!: Session[];
 }

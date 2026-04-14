@@ -10,32 +10,32 @@ import { UserRole } from './user-roles.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'student_number', length: 50, unique: true, nullable: true })
-  student_number: string;
+  student_number!: string;
 
   @Column({ name: 'staff_id', length: 50, unique: true, nullable: true })
-  staff_id: string;
+  staff_id!: string;
 
   @Column({ name: 'first_name', length: 100 })
-  first_name: string;
+  first_name!: string;
 
   @Column({ name: 'last_name', length: 100 })
-  last_name: string;
+  last_name!: string;
 
   @Column({ unique: true, length: 255 })
-  email: string;
+  email!: string;
 
   @Column({ name: 'password_hash', type: 'text' })
-  password_hash: string;
+  password_hash!: string;
 
   @Column({ name: 'is_active', default: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
-  created_at: Date;
+  created_at!: Date;
 
   @OneToMany(() => UserRole, (userRole) => userRole.user)
-  roles: UserRole[];
+  roles!: UserRole[];
 }
