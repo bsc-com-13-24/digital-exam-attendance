@@ -1,33 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { SessionService } from './session.service';
 import { SessionController } from './session.controller';
+import { Session } from './entities/sessions.entity';
+import { Course } from './entities/courses.entity';
+import { SessionStudent } from './entities/session-students.entity';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Session, Course, SessionStudent])],
   providers: [SessionService],
-  controllers: [SessionController]
+  controllers: [SessionController],
+  exports: [SessionService],
 })
-export class SessionModule {
-  title: string;
-  course_id: number;
-  venue: string;
-  schedule_start: string;
-  schedule_end: string;
-  notes: string;
-
-  constructor(
-    title: string,
-    course_id: number,
-    venue: string,
-    start: string,
-    end: string,
-    notes: string
-  ) {
-    this.title = title;
-    this.course_id = course_id;
-    this.venue = venue;
-    this.schedule_start = start;
-    this.schedule_end = end;
-    this.notes = notes;
-  }
-}
-
+export class SessionModule {}
