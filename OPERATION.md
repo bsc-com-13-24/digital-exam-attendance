@@ -5,7 +5,7 @@
 *    **THOSE THAT HAVE INSTALLED SQL PLUS**
 
     CREATE PLUGGABLE DATABASE digital_attendance_pdb
-    ADMIN USER digital_admin IDENTITFIED BY digitalpassword
+    ADMIN USER digital_admin IDENTIFIED BY digitalpassword
     FILE_NAME_CONVERT = (
         'C:\oracle\oradata\XE\pdbseed\',
         'C:\oracle\oradata\XE\digital_attendance_pdb\'
@@ -14,7 +14,7 @@
  *   **THOSE USING DOCKER**
 
     CREATE PLUGGABLE DATABASE digital_attendance_pdb
-    ADMIN USER digital_admin IDENTITFIED BY digitalpassword
+    ADMIN USER digital_admin IDENTIFIED BY digitalpassword
     FILE_NAME_CONVERT = (
         '/opt/oracle/oradata/XE/pdbseed/',
         '/opt/oracle/oradata/XE/digital_attendance_pdb/'

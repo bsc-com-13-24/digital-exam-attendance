@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Session } from './entities/sessions.entity';
-import { CreateSessionDto } from './create-session.dto';
+import { CreateSessionDto } from './dto/create-session.dto';
 
 @Injectable()
 export class SessionService {
