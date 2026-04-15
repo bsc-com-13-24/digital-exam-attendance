@@ -55,7 +55,7 @@ export class AttendanceRecord {
   @Column({ length: 20, nullable: true })
   method!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'clob', nullable: true })
   remarks!: string;
 
   @CreateDateColumn({ name: 'created_at' })
