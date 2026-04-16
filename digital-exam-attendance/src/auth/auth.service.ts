@@ -1,4 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entities/users.entity'
+import { UserRole } from './entities/user-roles.entity';
+import { Role } from './entities/roles.entity';
+import { LoginDto } from './dto/login.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { AssignRoleDto } from './dto/assign-role.dto';
+
 
 @Injectable()
-export class AuthService {}
+export class AuthService {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+
+        @InjectRepository(UserRole)
+        private readonly userRoleRepository: Repository<UserRole>,
+
+        @InjectRepository(Role)
+        private readonly roleRepository: Repository<Role>
+    ) { }
+
+    //USER CREATION CRUD
+    async createUser(dto: CreateUserDto): Promise<User> {
+        const user = this.userRepository.create(dto);
+        return await this.userRepository.save(dto);
+    }
+
+
+
+}
