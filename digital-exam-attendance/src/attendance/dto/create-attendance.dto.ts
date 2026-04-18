@@ -1,15 +1,15 @@
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class CreateAttendanceDto {
-    @IsString()
+    @IsUUID()
     @IsNotEmpty()
     student_id!: string;
 
-    @IsString()
+    @IsUUID()
     @IsNotEmpty()
     session_id!: string;
 
-    @IsString()
+    @IsUUID()
     @IsNotEmpty()
     session_student_id!: string;
 
@@ -24,4 +24,8 @@ export class CreateAttendanceDto {
     @IsString()
     @IsOptional()
     remarks?: string;
+
+    @IsUUID()
+    @IsOptional()
+    marked_by?: string;
 }
