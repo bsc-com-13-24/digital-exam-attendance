@@ -85,4 +85,6 @@ export class SessionService {
     await this.courseRepository.delete(id);
     return { message: `Course ${id} deleted successfully` };
   }
+
+  //ENROLL STUDENTS TO A SESSION
 }
