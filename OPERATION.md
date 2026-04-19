@@ -33,5 +33,28 @@
 *   **CHECKING IF OUR USER IS CREATED**
     SELECT username FROM dba_users WHERE username = 'DIGITAL_USER';
 
+    METHOD: POST 
+    URL: http://localhost:3000/auth/register
+    BODY:
+    {
+        "first_name": "Alice",
+        "last_name": "Smith",
+        "email": "alice@example.com",
+        "password": "secret123"
+    }
+
+    METHOD: POST
+    URL: http://localhost:3000/auth/login
+    BODY:
+    {
+        "email":    "john@test.com",
+        "password": "1234"
+    }
+    copy the access token from it
+
+    METHOD: GET
+    URL: http://localhost:3000/auth/profile
+    Go to authorization , then on type select Bearer token and paste the copied access token above. then send the request
+
 
 
