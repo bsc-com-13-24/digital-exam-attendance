@@ -30,6 +30,29 @@ export class AuthService {
         return await this.userRepository.save(dto);
     }
 
+    async getUserById(id: string): Promise<User> {
+        const session = await this.userRepository.findOne({
+            where: { id }
+        });
+        if (!session) {
+            throw new NotFoundException(`Session with ID ${id} not found`);
+        }
+        return session;
+    }
 
+    async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+        await this.getUserById(id);
+        await this.userRepository.update(id, updateUserDto);
+        return await this.getUserById(id);
+    }
+
+    async deleteProfile(id: string): Promise<{ message: string }> {
+        await this.getUserById(id);
+        await this.userRepository.delete(id);
+        return { message: `User with  ${id} deleted successfully` };
+    }
+
+    //SECURE LOGIN USING THE CREDENTIALS CREATED ABOVE
+    
 
 }
