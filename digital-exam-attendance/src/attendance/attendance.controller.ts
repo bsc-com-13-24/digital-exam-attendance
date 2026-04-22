@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Controller, Post, Get, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
@@ -52,3 +53,9 @@ export class AttendanceController {
     return this.attendanceService.searchStudentsForManualMark(sessionId, search);
   }
 }
+=======
+import { Controller } from '@nestjs/common';
+
+@Controller('attendance')
+export class AttendanceController {}
+>>>>>>> 1f4981e (Configured dtos and service for Offline module.)
