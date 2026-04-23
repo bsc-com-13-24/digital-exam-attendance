@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -167,3 +168,9 @@ export class AttendanceService {
     await this.auditLogRepository.save(log);
   }
 }
+=======
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AttendanceService {}
+>>>>>>> 1f4981e (Configured dtos and service for Offline module.)

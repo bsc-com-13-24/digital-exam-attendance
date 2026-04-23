@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -77,3 +78,9 @@ export class AuthService {
     };
   }
 }
+=======
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AuthService {}
+>>>>>>> 1f4981e (Configured dtos and service for Offline module.)
