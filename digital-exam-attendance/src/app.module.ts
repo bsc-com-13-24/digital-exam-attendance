@@ -7,6 +7,7 @@ import { SessionModule } from './session/session.module';
 import { OfflineModule } from './offline/offline.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { User } from './auth/entities/users.entity';
 import { Role } from './auth/entities/roles.entity';
 import { UserRole } from './auth/entities/user-roles.entity';
@@ -47,6 +48,7 @@ import { AuditLog } from './attendance/entities/audit-logs.entity';
     SessionModule,
     AttendanceModule,
     OfflineModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
