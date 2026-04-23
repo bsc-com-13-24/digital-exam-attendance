@@ -50,7 +50,7 @@ export class AuthService {
     return user;
   }
 
-  //  
+  //UPDATE  
   async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     await this.getUserById(id);
     await this.userRepository.update(id, updateUserDto);
