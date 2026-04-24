@@ -26,7 +26,7 @@ export class AttendanceService {
   async markAttendance(dto: CreateAttendanceDto, userId: string): Promise<AttendanceRecord> {
     // Validate student is registered for the session
     const sessionStudent = await this.sessionStudentRepository.findOne({
-      where: { id: dto.session_student_id, session_id: dto.session_id, student_id: dto.student_id },
+      where: { id: dto.session_student_id, session_id: dto.session_id },
     });
     if (!sessionStudent) {
       throw new BadRequestException('Student is not registered for this session');
@@ -34,7 +34,7 @@ export class AttendanceService {
 
     // Check for duplicate entry
     const existing = await this.attendanceRepository.findOne({
-      where: { session_id: dto.session_id, student_id: dto.student_id },
+      where: { session_id: dto.session_id, session_student_id: dto.session_student_id },
     });
     if (existing) {
       throw new ConflictException('Attendance already marked for this student in the session');
@@ -98,15 +98,14 @@ export class AttendanceService {
   async getAttendanceRecords(query: AttendanceQueryDto): Promise<AttendanceRecord[]> {
     const qb = this.attendanceRepository.createQueryBuilder('record')
       .leftJoinAndSelect('record.session', 'session')
-      .leftJoinAndSelect('record.student', 'student')
       .leftJoinAndSelect('record.session_student', 'session_student')
       .leftJoinAndSelect('record.marked_by_user', 'marked_by_user');
 
     if (query.session_id) {
       qb.andWhere('record.session_id = :session_id', { session_id: query.session_id });
     }
-    if (query.student_id) {
-      qb.andWhere('record.student_id = :student_id', { student_id: query.student_id });
+    if (query.student_number) {
+      qb.andWhere('session_student.student_number = :student_number', { student_number: query.student_number });
     }
     if (query.status) {
       qb.andWhere('record.status = :status', { status: query.status });

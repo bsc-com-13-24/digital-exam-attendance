@@ -13,7 +13,7 @@ import { User } from '../../auth/entities/users.entity';
 import { SessionStudent } from '../../session/entities/session-students.entity';
 
 @Entity('attendance_records')
-@Unique(['session_id', 'student_id'])
+@Unique(['session_id', 'session_student_id'])
 export class AttendanceRecord {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -31,13 +31,6 @@ export class AttendanceRecord {
 
   @Column({ name: 'session_student_id' })
   session_student_id!: string;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'student_id' })
-  student!: User;
-
-  @Column({ name: 'student_id' })
-  student_id!: string;
 
   @Column({ length: 20, default: 'absent' })
   status!: string;

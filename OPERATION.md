@@ -40,7 +40,8 @@
         "first_name": "Alice",
         "last_name": "Smith",
         "email": "alice@example.com",
-        "password": "secret123"
+        "password": "secret123",
+        "role": "teacher"
     }
 
     METHOD: POST
@@ -56,83 +57,63 @@
     URL: http://localhost:3000/auth/profile
     Go to authorization , then on type select Bearer token and paste the copied access token above. then send the request
 
+    ### Create Course
+- **Method**: `POST`
+- **Endpoint**: `/session/course`
+- **Auth**: Required (Admin/Teacher)
+- **Body**:
+```json
+{
+  "code": "CS101",
+  "name": "Introduction to Computer Science"
+}
+```
+
+### Create Session
+- **Method**: `POST`
+- **Endpoint**: `/session`
+- **Auth**: Required (Admin/Teacher)
+- **Body**:
+```json
+{
+  "title": "Final Exam - CS101",
+  "venue": "Hall A",
+  "scheduled_start": "2026-05-01T09:00:00Z",
+  "scheduled_end": "2026-05-01T12:00:00Z",
+  "course_id": "<uuid_of_created_course>"
+}
+```
+ **Method**: `POST`
+- **Endpoint**: `/api/v1/session/<session_id>/enrolL`
+- **Auth**: Required (Admin/Teacher)
+- **Body**:
+```json
+{
+  "students": [
+    {
+      "student_number": "BIT/COM/13/24",
+      "full_name": "Alice Smith"
+    },
+    {
+      "student_number": "BIT/COM/15/24",
+      "full_name": "Bob Johnson"
+    }
+  ]
+}
+
+ **Method**: `POST`
+- **Endpoint**: `/api/v1/attendance/mark`
+- **Auth**: Required (Admin/Teacher)
+- **Body**:
+```json
+{
+  "session_id": "<session_id>",
+  "session_student_id": "<uuid_from_enroll_response>",
+  "status": "present",
+  "method": "scan"
+}
 
 
-Inspecting session and auth authorization structure so the guidance is specific.
 
-Read [](file:///home/allan/DEV/WEB-LAB/digital-exam-attendance/digital-exam-attendance/src/session/session.controller.ts)
 
-Searched for regex `createSession|create-session|@Post\(|@UseGuards\(|Role|roles|UserRole|AuthGuard\('jwt'\)|JwtStrategy` (`**/src/**/*.{ts}`), 83 results
 
-Read [](file:///home/allan/DEV/WEB-LAB/digital-exam-attendance/digital-exam-attendance/src/session/session.module.ts)
-
-## What you need to do
-
-Right now, `/session` is completely open:
-
-- `SessionController.create()` has no guard
-- it accepts `CreateSessionDto` directly
-- anyone can call it if they know the URL
-
-So to ensure only authorized users can create sessions, you need two things:
-
-1. authenticate the request
-2. authorize based on user identity/role
-
----
-
-## Step 1: require JWT auth for session creation
-
-Protect the session creation route with the same JWT guard you already use in auth routes.
-
-In other words:
-- add `@UseGuards(AuthGuard('jwt'))` to `SessionController.create()`
-- read `req.user` from the validated token
-
-That ensures only requests with a valid bearer token can reach `createSession()`.
-
----
-
-## Step 2: tie the session to the creator
-
-Then make the session creation logic record who created it:
-- add an owner field to the session entity, e.g. `created_by` or `creator_id`
-- when creating a session, save `req.user.userId` along with the session data
-
-This gives you a trusted “who created this session” value.
-
----
-
-## Step 3: enforce authorization for future updates/deletes
-
-If you want “only the creator can modify or delete their session”, then:
-- on update/delete routes, also require `AuthGuard('jwt')`
-- load the session and compare its owner to `req.user.userId`
-- reject the request if they do not match
-
-That makes it “only the user who created it can change it”.
-
----
-
-## Step 4: optionally restrict creation to certain roles
-
-If you want only specific users to create sessions (for example teachers/admins), use role-based authorization:
-
-- assign roles to users in `auth/entities/roles.entity.ts` and `user_roles`
-- add a role guard or simple check in session creation
-- allow only users with `role === 'teacher'` or `role === 'admin'` to create sessions
-
-This is the best pattern when not every authenticated user should create sessions.
-
----
-
-## In plain terms
-
-- Authentication = prove the request is from a logged-in user
-- Authorization = prove that logged-in user is allowed to do this action
-- For session creation:
-  - require JWT auth
-  - record who created the session
-  - check owner or role before allowing changes
-
-If you want, I can next explain exactly where to add `@UseGuards(AuthGuard('jwt'))` and how to pass `req.user` into your session service.

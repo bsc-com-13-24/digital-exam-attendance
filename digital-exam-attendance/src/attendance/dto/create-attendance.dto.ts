@@ -3,10 +3,6 @@ import { IsString, IsOptional, IsNotEmpty, IsUUID } from 'class-validator';
 export class CreateAttendanceDto {
     @IsUUID()
     @IsNotEmpty()
-    student_id!: string;
-
-    @IsUUID()
-    @IsNotEmpty()
     session_id!: string;
 
     @IsUUID()
