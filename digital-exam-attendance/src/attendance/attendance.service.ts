@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -24,7 +23,7 @@ export class AttendanceService {
     private readonly sessionRepository: Repository<Session>,
   ) {}
 
-  async markAttendance(dto: CreateAttendanceDto): Promise<AttendanceRecord> {
+  async markAttendance(dto: CreateAttendanceDto, userId: string): Promise<AttendanceRecord> {
     // Validate student is registered for the session
     const sessionStudent = await this.sessionStudentRepository.findOne({
       where: { id: dto.session_student_id, session_id: dto.session_id, student_id: dto.student_id },
@@ -62,18 +61,18 @@ export class AttendanceService {
     const saved = await this.attendanceRepository.save(record);
 
     // Log audit
-    await this.logAudit(dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
+    await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
 
     return saved;
   }
 
-  async bulkMarkAttendance(dto: BulkMarkAttendanceDto): Promise<AttendanceRecord[]> {
+  async bulkMarkAttendance(dto: BulkMarkAttendanceDto, userId: string): Promise<AttendanceRecord[]> {
     const records: AttendanceRecord[] = [];
     for (const recordDto of dto.records) {
       if (recordDto.session_id !== dto.session_id) {
         throw new BadRequestException('Session ID mismatch in bulk records');
       }
-      const record = await this.markAttendance(recordDto);
+      const record = await this.markAttendance(recordDto, userId);
       records.push(record);
     }
     return records;
@@ -168,9 +167,3 @@ export class AttendanceService {
     await this.auditLogRepository.save(log);
   }
 }
-=======
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AttendanceService {}
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)

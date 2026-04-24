@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -51,6 +50,15 @@ export class AuthService {
     return user;
   }
 
+  async getUserWithRoles(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles', 'roles.role'],
+    });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
   //UPDATE  
   async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     await this.getUserById(id);
@@ -78,9 +86,3 @@ export class AuthService {
     };
   }
 }
-=======
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AuthService {}
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)
