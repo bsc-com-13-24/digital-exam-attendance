@@ -34,7 +34,21 @@ export class AuthService {
       password_hash,           
     });
 
-    return await this.userRepository.save(user); 
+    const savedUser = await this.userRepository.save(user); 
+
+    // Assign role if provided
+    if (dto.role) {
+      const role = await this.roleRepository.findOne({ where: { name: dto.role.toLowerCase() } });
+      if (role) {
+        const userRole = this.userRoleRepository.create({
+          user_id: savedUser.id,
+          role_id: role.id,
+        });
+        await this.userRoleRepository.save(userRole);
+      }
+    }
+
+    return this.getUserWithRoles(savedUser.id);
   }
 
   // READ 
