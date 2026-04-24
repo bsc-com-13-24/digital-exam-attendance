@@ -30,9 +30,9 @@ export class OfflineAttendanceRecordDto {
   @IsNotEmpty()
   sessionId!: string; // Which exam session this record belongs to
 
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
-  studentId!: string; // Which student attended
+  studentNumber!: string; // Institutional ID
 
   @IsEnum(AttendanceStatus)
   @IsNotEmpty()

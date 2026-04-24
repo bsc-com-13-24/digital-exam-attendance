@@ -67,12 +67,12 @@ export class OfflineService {
     const sessionStudent = await this.sessionStudentRepo.findOne({
       where: {
         session_id: record.sessionId,
-        student_id: record.studentId,
+        student_number: record.studentNumber,
       },
     });
     if (!sessionStudent) {
       throw new BadRequestException(
-        `Student ${record.studentId} is not registered for session ${record.sessionId}`,
+        `Student ${record.studentNumber} is not registered for session ${record.sessionId}`,
       );
     }
 
@@ -80,19 +80,18 @@ export class OfflineService {
     const existingRecord = await this.attendanceRepo.findOne({
       where: {
         session_id: record.sessionId,
-        student_id: record.studentId,
+        session_student_id: sessionStudent.id,
       },
     });
     if (existingRecord) {
       throw new ConflictException(
-        `Attendance already recorded for student ${record.studentId} in session ${record.sessionId}`,
+        `Attendance already recorded for student ${record.studentNumber} in session ${record.sessionId}`,
       );
     }
 
     // Step 4: Create and save the attendance record
     const attendanceRecord = this.attendanceRepo.create({
       session_id: record.sessionId,
-      student_id: record.studentId,
       session_student_id: sessionStudent.id,
       status: record.status,
       method: record.method,

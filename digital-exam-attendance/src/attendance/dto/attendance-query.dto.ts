@@ -6,8 +6,8 @@ export class AttendanceQueryDto {
   session_id?: string;
 
   @IsOptional()
-  @IsUUID()
-  student_id?: string;
+  @IsString()
+  student_number?: string;
 
   @IsOptional()
   @IsString()

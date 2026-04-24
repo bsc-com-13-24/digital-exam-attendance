@@ -8,10 +8,9 @@ import {
   Unique,
 } from 'typeorm';
 import { Session } from './sessions.entity';
-import { User } from '../../auth/entities/users.entity';
 
 @Entity('session_students')
-@Unique(['session_id', 'student_id'])
+@Unique(['session_id', 'student_number'])
 export class SessionStudent {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -22,13 +21,6 @@ export class SessionStudent {
 
   @Column({ name: 'session_id' })
   session_id!: string;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'student_id' })
-  student!: User;
-
-  @Column({ name: 'student_id' })
-  student_id!: string;
 
   @Column({ name: 'student_number', length: 50 })
   student_number!: string;

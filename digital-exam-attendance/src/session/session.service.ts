@@ -105,6 +105,34 @@ export class SessionService {
   }
 
   //ENROLL STUDENTS TO A SESSION
+  async enrollStudents(sessionId: string, dto: EnrollStudentsDto): Promise<SessionStudent[]> {
+    const session = await this.getSessionById(sessionId);
+    
+    // Process each student enrollment
+    const enrollments: SessionStudent[] = [];
+    for (const studentDto of dto.students) {
+      // Check if already enrolled by student_number to prevent duplicate errors
+      const existing = await this.sessionStudentRepository.findOne({
+        where: { session_id: sessionId, student_number: studentDto.student_number }
+      });
+      
+      if (!existing) {
+        const enrollment = this.sessionStudentRepository.create({
+          session_id: sessionId,
+          student_number: studentDto.student_number,
+          full_name: studentDto.full_name,
+        });
+        enrollments.push(enrollment);
+      }
+    }
+
+    if (enrollments.length > 0) {
+      return await this.sessionStudentRepository.save(enrollments);
+    }
+    
+    // Return current students if none were newly enrolled
+    return await this.getStudentsBySessionId(sessionId);
+  }
 
   async getStudentsBySessionId(sessionId: string): Promise<SessionStudent[]> {
     return await this.sessionStudentRepository.find({
