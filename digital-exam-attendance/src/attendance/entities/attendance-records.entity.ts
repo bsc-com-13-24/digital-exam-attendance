@@ -46,17 +46,17 @@ export class AttendanceRecord {
   @JoinColumn({ name: 'marked_by' })
   marked_by_user!: User;
 
-  @Column({ name: 'marked_by', nullable: true })
-  marked_by!: string;
+  @Column({ name: 'marked_by', type: 'varchar2', length: 100, nullable: true })
+  marked_by?: string | null;
 
   @Column({ name: 'marked_at', type: 'timestamp', nullable: true })
-  marked_at!: Date;
+  marked_at?: Date | null;
 
-  @Column({ length: 20, nullable: true })
-  method!: string;
+  @Column({ type: 'varchar2', length: 20, nullable: true })
+  method?: string | null;
 
   @Column({ type: 'clob', nullable: true })
-  remarks!: string;
+  remarks?: string | null;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;
