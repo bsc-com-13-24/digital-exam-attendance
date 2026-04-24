@@ -6,7 +6,7 @@ import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
 import { SyncOfflineDto, OfflineAttendanceRecordDto } from './dto/sync-offline.dto';
 
-interface SyncResult {
+export interface SyncResult {
   successCount: number;
   failureCount: number;
   failures: Array<{
@@ -26,7 +26,7 @@ export class OfflineService {
     private sessionRepo: Repository<Session>,
   ) {}
 
-  async syncOfflineRecords(syncDto: SyncOfflineDto): Promise<SyncResult> {
+  async syncOfflineRecords(syncDto: SyncOfflineDto, userId: string): Promise<SyncResult> {
     if (!syncDto.offlineRecords || syncDto.offlineRecords.length === 0) {
       throw new BadRequestException('No offline records provided');
     }
@@ -40,7 +40,7 @@ export class OfflineService {
     // Process each offline record
     for (const record of syncDto.offlineRecords) {
       try {
-        await this.validateAndSyncRecord(record);
+        await this.validateAndSyncRecord(record, userId);
         result.successCount++;
       } catch (error) {
         result.failureCount++;
@@ -54,7 +54,7 @@ export class OfflineService {
     return result;
   }
 
-  private async validateAndSyncRecord(record: OfflineAttendanceRecordDto): Promise<void> {
+  private async validateAndSyncRecord(record: OfflineAttendanceRecordDto, userId: string): Promise<void> {
     // Step 1: Validate session exists
     const session = await this.sessionRepo.findOne({
       where: { id: record.sessionId },
@@ -98,7 +98,7 @@ export class OfflineService {
       method: record.method,
       marked_at: new Date(record.markedAt),
       remarks: record.remarks || null,
-      marked_by: null, // Offline scan, no specific invigilator
+      marked_by: userId, // User who performed the sync
     });
 
     await this.attendanceRepo.save(attendanceRecord);

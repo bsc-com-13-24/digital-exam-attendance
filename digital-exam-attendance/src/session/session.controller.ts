@@ -9,6 +9,7 @@ import { UpdateCourseDto } from './dto/update-course.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { SessionStudent } from './entities/session-students.entity';
 
 @Controller('session')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -30,6 +31,11 @@ export class SessionController {
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Session> {
     return await this.sessionService.getSessionById(id);
+  }
+
+  @Get(':id/students')
+  async getSessionStudents(@Param('id') id: string): Promise<SessionStudent[]> {
+    return await this.sessionService.getStudentsBySessionId(id);
   }
 
   @Roles('admin', 'teacher')

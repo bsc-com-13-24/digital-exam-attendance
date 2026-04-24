@@ -105,4 +105,11 @@ export class SessionService {
   }
 
   //ENROLL STUDENTS TO A SESSION
+
+  async getStudentsBySessionId(sessionId: string): Promise<SessionStudent[]> {
+    return await this.sessionStudentRepository.find({
+      where: { session_id: sessionId },
+      relations: ['student'],
+    });
+  }
 }
