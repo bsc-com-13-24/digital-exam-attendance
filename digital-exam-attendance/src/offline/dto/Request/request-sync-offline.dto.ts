@@ -1,52 +1,41 @@
-// dto/request/request-sync-offline.dto.ts
+// Request DTO for syncing offline records
 
-import { IsString } from "class-validator";
-import { User } from "src/auth/entities/users.entity";
-import {Column, CreateDateColumn, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { IsString, IsUUID, IsEnum, IsOptional, IsISO8601 } from "class-validator";
 
-export class OfflineRecordDto{
-    @IsString()
-    local_id!: string;
-    
-    @PrimaryGeneratedColumn('uuid')
-    id!: string;
+export enum AttendanceStatus {
+  PRESENT = 'present',
+  ABSENT = 'absent',
+  LATE = 'late',
+}
 
-    @Column({name: 'session_student_id'})  
-    session_id!: string;
+export enum ScanMethod {
+  SCAN = 'scan',
+  MANUAL = 'manual',
+}
 
-    @ManyToOne(()=>User)
-    @JoinColumn({name: 'student_id'})
-    student!: User;
+export class OfflineRecordRequestDto {
+  @IsString()
+  localId!: string;
 
-    @Column({name: 'student_id'})
-    student_id!: string;
+  @IsUUID()
+  sessionId!: string;
 
-    @Column({length: 20, default: 'absent'})
-    status!: "present" | "completed" | "absent";
+  @IsUUID()
+  studentId!: string;
 
-    @Column({length: 20, nullable: true})
-    method!: "scan"|"manual";
-   
-    @Column({ name: 'completed_at', nullable: true})
-    completedAt?: string;
+  @IsEnum(AttendanceStatus)
+  status!: AttendanceStatus;
 
-    @Column({ type: 'clob', nullable:true})
-    remarks?: string;
+  @IsEnum(ScanMethod)
+  method!: ScanMethod;
 
-    @Column({ name: 'marked_by', nullable: true})
-    marked_by!: string;
+  @IsISO8601()
+  markedAt!: string;
 
-    @Column({ name: 'marked_at', type: 'timestamp', nullable: true})
-    marked_at!: Date;
-
-    @JoinColumn({name: 'marked_by'})
-    marked_by_user!: User;
-
-    @Column({ name: 'device_id', nullable: true})
-    device_id!: string;
-
-    @CreateDateColumn({name: 'created_at'})
-    created_at!: Date;
+  @IsString()
+  @IsOptional()
+  remarks?: string;
+}
 
     @UpdateDateColumn({name: 'update_at'})
     updated_at!: Date;

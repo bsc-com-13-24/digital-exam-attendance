@@ -13,13 +13,22 @@ import { Type } from 'class-transformer';
 export enum AttendanceStatus {
   PRESENT = 'present',
   ABSENT = 'absent',
-  INCOMPLETE = 'incomplete',
+  LATE = 'late',
 }
 
 export enum ScanMethod {
   SCAN = 'scan',
   MANUAL = 'manual',
 }
+
+export interface SyncResult {
+  successCount: number;
+  failureCount: number;
+  failures: Array<{
+    localId: string;
+    reason: string;
+  }>;
+} 
 
 export class OfflineAttendanceRecordDto {
   @IsString()
@@ -36,7 +45,7 @@ export class OfflineAttendanceRecordDto {
 
   @IsEnum(AttendanceStatus)
   @IsNotEmpty()
-  status!: AttendanceStatus; // present, absent, or incomplete
+  status!: AttendanceStatus; // present, absent, or late
 
   @IsEnum(ScanMethod)
   @IsNotEmpty()
@@ -60,4 +69,6 @@ export class SyncOfflineDto {
   @ValidateNested({ each: true })
   @Type(() => OfflineAttendanceRecordDto)
   offlineRecords!: OfflineAttendanceRecordDto[]; // Records synced from offline storage
+
+  syncResult?: SyncResult; // Optional field to return sync results
 }
