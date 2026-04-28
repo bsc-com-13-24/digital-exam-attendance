@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Session } from './entities/sessions.entity';
@@ -26,8 +25,11 @@ export class SessionService {
   ) { }
 
   //SESSION CRUD
-  async createSession(dto: CreateSessionDto): Promise<Session> {
-    const session = this.sessionRepository.create(dto);
+  async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
+    const session = this.sessionRepository.create({
+      ...dto,
+      created_by: userId,
+    });
     return await this.sessionRepository.save(session);
   }
 
@@ -45,21 +47,30 @@ export class SessionService {
     return session;
   }
 
-  async updateSession(id: string, updateSessionDto: UpdateSessionDto): Promise<Session> {
-    await this.getSessionById(id);
+  async updateSession(id: string, updateSessionDto: UpdateSessionDto, userId: string): Promise<Session> {
+    const session = await this.getSessionById(id);
+    if (session.created_by !== userId) {
+      throw new ForbiddenException('You can only update sessions you created');
+    }
     await this.sessionRepository.update(id, updateSessionDto);
     return await this.getSessionById(id);
   }
 
-  async removeSession(id: string): Promise<{ message: string }> {
-    await this.getSessionById(id);
+  async removeSession(id: string, userId: string): Promise<{ message: string }> {
+    const session = await this.getSessionById(id);
+    if (session.created_by !== userId) {
+      throw new ForbiddenException('You can only delete sessions you created');
+    }
     await this.sessionRepository.delete(id);
     return { message: `Session ${id} deleted successfully` };
   }
 
   //COURSE CRUD
-  async createCourse(createCourseDto: CreateCourseDto): Promise<Course> {
-    const course = this.courseRepository.create(createCourseDto);
+  async createCourse(createCourseDto: CreateCourseDto, userId: string): Promise<Course> {
+    const course = this.courseRepository.create({
+      ...createCourseDto,
+      created_by: userId,
+    });
     return await this.courseRepository.save(course);
   }
 
@@ -75,52 +86,30 @@ export class SessionService {
     return course;
   }
 
-  async updateCourse(id: string, updateCourseDto: UpdateCourseDto): Promise<Course> {
-    await this.getCourseById(id);
+  async updateCourse(id: string, updateCourseDto: UpdateCourseDto, userId: string): Promise<Course> {
+    const course = await this.getCourseById(id);
+    if (course.created_by !== userId) {
+      throw new ForbiddenException('You can only update courses you created');
+    }
     await this.courseRepository.update(id, updateCourseDto);
     return await this.getCourseById(id);
   }
 
-  async removeCourse(id: string): Promise<{ message: string }> {
-    await this.getCourseById(id);
+  async removeCourse(id: string, userId: string): Promise<{ message: string }> {
+    const course = await this.getCourseById(id);
+    if (course.created_by !== userId) {
+      throw new ForbiddenException('You can only delete courses you created');
+    }
     await this.courseRepository.delete(id);
     return { message: `Course ${id} deleted successfully` };
   }
 
   //ENROLL STUDENTS TO A SESSION
-}
-=======
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Session } from './entities/sessions.entity';
-import { CreateSessionDto } from './dto/create-session.dto';
 
-@Injectable()
-export class SessionService {
-  constructor(
-    @InjectRepository(Session)
-    private readonly sessionRepository: Repository<Session>,
-  ) { }
-
-  async createSession(dto: CreateSessionDto): Promise<Session> {
-    const session = this.sessionRepository.create(dto);
-    return await this.sessionRepository.save(session);
-  }
-
-  async getAllSessions(): Promise<Session[]> {
-    return await this.sessionRepository.find({ relations: ['course', 'created_by_user'] });
-  }
-
-  async getSessionById(id: string): Promise<Session> {
-    const session = await this.sessionRepository.findOne({
-      where: { id },
-      relations: ['course', 'created_by_user'],
+  async getStudentsBySessionId(sessionId: string): Promise<SessionStudent[]> {
+    return await this.sessionStudentRepository.find({
+      where: { session_id: sessionId },
+      relations: ['student'],
     });
-    if (!session) {
-      throw new NotFoundException(`Session with ID ${id} not found`);
-    }
-    return session;
   }
 }
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -35,7 +34,21 @@ export class AuthService {
       password_hash,           
     });
 
-    return await this.userRepository.save(user); 
+    const savedUser = await this.userRepository.save(user); 
+
+    // Assign role if provided
+    if (dto.role) {
+      const role = await this.roleRepository.findOne({ where: { name: dto.role.toLowerCase() } });
+      if (role) {
+        const userRole = this.userRoleRepository.create({
+          user_id: savedUser.id,
+          role_id: role.id,
+        });
+        await this.userRoleRepository.save(userRole);
+      }
+    }
+
+    return this.getUserWithRoles(savedUser.id);
   }
 
   // READ 
@@ -51,7 +64,16 @@ export class AuthService {
     return user;
   }
 
-  //  
+  async getUserWithRoles(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles', 'roles.role'],
+    });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
+  //UPDATE  
   async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     await this.getUserById(id);
     await this.userRepository.update(id, updateUserDto);
@@ -78,9 +100,3 @@ export class AuthService {
     };
   }
 }
-=======
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AuthService {}
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
@@ -24,14 +23,3 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   exports: [AuthService],
 })
 export class AuthModule {}
-=======
-import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-
-@Module({
-  providers: [AuthService],
-  controllers: [AuthController],
-})
-export class AuthModule {}
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)
