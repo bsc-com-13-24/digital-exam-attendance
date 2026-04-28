@@ -4,7 +4,20 @@ import { Repository, DataSource } from 'typeorm';
 import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
+<<<<<<< HEAD
 import { SyncOfflineDto, OfflineAttendanceRecordDto, SyncResult} from './dto/sync-offline.dto';
+=======
+import { SyncOfflineDto, OfflineAttendanceRecordDto } from './dto/sync-offline.dto';
+
+export interface SyncResult {
+  successCount: number;
+  failureCount: number;
+  failures: Array<{
+    localId: string;
+    reason: string;
+  }>;
+}
+>>>>>>> 71a0675e6087e7dcf5d55f6a87edb92958d8d2a6
 
 @Injectable()
 export class OfflineService {
@@ -20,7 +33,7 @@ export class OfflineService {
     private dataSource: DataSource,
   ) {}
 
-  async syncOfflineRecords(syncDto: SyncOfflineDto): Promise<SyncResult> {
+  async syncOfflineRecords(syncDto: SyncOfflineDto, userId: string): Promise<SyncResult> {
     if (!syncDto.offlineRecords || syncDto.offlineRecords.length === 0) {
       throw new BadRequestException('No offline records provided');
     }
@@ -33,6 +46,7 @@ export class OfflineService {
       failures: [],
     };
 
+<<<<<<< HEAD
     // Use transaction to ensure data consistency
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -54,6 +68,19 @@ export class OfflineService {
           });
           this.logger.warn(`Failed to sync record ${record.localId}: ${errorMessage}`);
         }
+=======
+    // Process each offline record
+    for (const record of syncDto.offlineRecords) {
+      try {
+        await this.validateAndSyncRecord(record, userId);
+        result.successCount++;
+      } catch (error) {
+        result.failureCount++;
+        result.failures.push({
+          localId: record.localId,
+          reason: error instanceof Error ? error.message : 'Unknown error',
+        });
+>>>>>>> 71a0675e6087e7dcf5d55f6a87edb92958d8d2a6
       }
 
       await queryRunner.commitTransaction();
@@ -69,7 +96,11 @@ export class OfflineService {
     return result;
   }
 
+<<<<<<< HEAD
   private async validateAndSyncRecord(record: OfflineAttendanceRecordDto, queryRunner: any): Promise<void> {
+=======
+  private async validateAndSyncRecord(record: OfflineAttendanceRecordDto, userId: string): Promise<void> {
+>>>>>>> 71a0675e6087e7dcf5d55f6a87edb92958d8d2a6
     // Step 1: Validate session exists
     const session = await queryRunner.manager.findOne(Session, {
       where: { id: record.sessionId },
@@ -113,7 +144,7 @@ export class OfflineService {
       method: record.method,
       marked_at: new Date(record.markedAt),
       remarks: record.remarks || null,
-      marked_by: null, // Offline scan, no specific invigilator
+      marked_by: userId, // User who performed the sync
     });
 
     await queryRunner.manager.save(attendanceRecord);

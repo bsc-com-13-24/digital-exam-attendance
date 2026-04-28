@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-import { Controller, Post, Get, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
@@ -7,27 +6,35 @@ import { BulkMarkAttendanceDto } from './dto/bulk-mark-attendance.dto';
 import { AttendanceQueryDto } from './dto/attendance-query.dto';
 import { AttendanceRecord } from './entities/attendance-records.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Controller('attendance')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
+  @Roles('admin', 'teacher')
   @Post('mark')
-  async markAttendance(@Body() dto: CreateAttendanceDto): Promise<AttendanceRecord> {
-    return this.attendanceService.markAttendance(dto);
+  async markAttendance(@Body() dto: CreateAttendanceDto, @Request() req): Promise<AttendanceRecord> {
+    return this.attendanceService.markAttendance(dto, req.user.userId);
   }
 
+  @Roles('admin', 'teacher')
   @Post('bulk-mark')
-  async bulkMarkAttendance(@Body() dto: BulkMarkAttendanceDto): Promise<AttendanceRecord[]> {
-    return this.attendanceService.bulkMarkAttendance(dto);
+  async bulkMarkAttendance(@Body() dto: BulkMarkAttendanceDto, @Request() req): Promise<AttendanceRecord[]> {
+    return this.attendanceService.bulkMarkAttendance(dto, req.user.userId);
   }
 
+  @Roles('admin', 'teacher')
   @Put(':id')
   async updateAttendance(
     @Param('id') id: string,
     @Body() dto: UpdateAttendanceDto,
+    @Request() req,
   ): Promise<AttendanceRecord> {
-    return this.attendanceService.updateAttendance(id, dto);
+    return this.attendanceService.updateAttendance(id, dto, req.user.userId);
   }
 
   @Get()
@@ -53,9 +60,3 @@ export class AttendanceController {
     return this.attendanceService.searchStudentsForManualMark(sessionId, search);
   }
 }
-=======
-import { Controller } from '@nestjs/common';
-
-@Controller('attendance')
-export class AttendanceController {}
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)

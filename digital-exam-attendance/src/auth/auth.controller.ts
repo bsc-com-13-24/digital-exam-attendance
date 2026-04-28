@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -49,9 +48,3 @@ export class AuthController {
     return this.authService.deleteProfile(id);
   }
 }
-=======
-import { Controller } from '@nestjs/common';
-
-@Controller('auth')
-export class AuthController {}
->>>>>>> 1f4981e (Configured dtos and service for Offline module.)

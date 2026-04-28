@@ -69,6 +69,4 @@ export class SyncOfflineDto {
   @ValidateNested({ each: true })
   @Type(() => OfflineAttendanceRecordDto)
   offlineRecords!: OfflineAttendanceRecordDto[]; // Records synced from offline storage
-
-  syncResult?: SyncResult; // Optional field to return sync results
 }
