@@ -1,23 +1,10 @@
 import { Injectable, BadRequestException, ConflictException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, QueryRunner } from 'typeorm';
 import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
-<<<<<<< HEAD
-import { SyncOfflineDto, OfflineAttendanceRecordDto, SyncResult} from './dto/sync-offline.dto';
-=======
-import { SyncOfflineDto, OfflineAttendanceRecordDto } from './dto/sync-offline.dto';
-
-export interface SyncResult {
-  successCount: number;
-  failureCount: number;
-  failures: Array<{
-    localId: string;
-    reason: string;
-  }>;
-}
->>>>>>> 71a0675e6087e7dcf5d55f6a87edb92958d8d2a6
+import { SyncOfflineDto, OfflineAttendanceRecordDto, SyncResult } from './dto/sync-offline.dto';
 
 @Injectable()
 export class OfflineService {
@@ -46,19 +33,16 @@ export class OfflineService {
       failures: [],
     };
 
-<<<<<<< HEAD
-    // Use transaction to ensure data consistency
+    // run in transaction
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      // Process each offline record
       for (const record of syncDto.offlineRecords) {
         try {
-          await this.validateAndSyncRecord(record, queryRunner);
+          await this.validateAndSyncRecord(record, userId, queryRunner);
           result.successCount++;
-          this.logger.debug(`Successfully synced record: ${record.localId}`);
         } catch (error) {
           result.failureCount++;
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -68,19 +52,6 @@ export class OfflineService {
           });
           this.logger.warn(`Failed to sync record ${record.localId}: ${errorMessage}`);
         }
-=======
-    // Process each offline record
-    for (const record of syncDto.offlineRecords) {
-      try {
-        await this.validateAndSyncRecord(record, userId);
-        result.successCount++;
-      } catch (error) {
-        result.failureCount++;
-        result.failures.push({
-          localId: record.localId,
-          reason: error instanceof Error ? error.message : 'Unknown error',
-        });
->>>>>>> 71a0675e6087e7dcf5d55f6a87edb92958d8d2a6
       }
 
       await queryRunner.commitTransaction();
@@ -96,12 +67,12 @@ export class OfflineService {
     return result;
   }
 
-<<<<<<< HEAD
-  private async validateAndSyncRecord(record: OfflineAttendanceRecordDto, queryRunner: any): Promise<void> {
-=======
-  private async validateAndSyncRecord(record: OfflineAttendanceRecordDto, userId: string): Promise<void> {
->>>>>>> 71a0675e6087e7dcf5d55f6a87edb92958d8d2a6
-    // Step 1: Validate session exists
+  private async validateAndSyncRecord(
+    record: OfflineAttendanceRecordDto, 
+    userId: string, 
+    queryRunner: QueryRunner
+  ): Promise<void> {
+    // session check
     const session = await queryRunner.manager.findOne(Session, {
       where: { id: record.sessionId },
     });
@@ -109,20 +80,23 @@ export class OfflineService {
       throw new NotFoundException(`Session ${record.sessionId} not found`);
     }
 
-    // Step 2: Validate student is registered for this session
+    // student registration check
+    // Note: The DTO has studentId but the code was using studentNumber. 
+    // Checking the entity and DTO to see which one is correct.
+    // In sync-offline.dto.ts it is 'studentId'.
     const sessionStudent = await queryRunner.manager.findOne(SessionStudent, {
       where: {
         session_id: record.sessionId,
-        student_number: record.studentNumber,
+        id: record.studentId, 
       },
     });
     if (!sessionStudent) {
       throw new BadRequestException(
-        `Student ${record.studentNumber} is not registered for session ${record.sessionId}`,
+        `Student ${record.studentId} is not registered for session ${record.sessionId}`,
       );
     }
 
-    // Step 3: Check if attendance record already exists (prevent duplicates)
+    // check for existing record
     const existingRecord = await queryRunner.manager.findOne(AttendanceRecord, {
       where: {
         session_id: record.sessionId,
@@ -131,11 +105,11 @@ export class OfflineService {
     });
     if (existingRecord) {
       throw new ConflictException(
-        `Attendance already recorded for student ${record.studentNumber} in session ${record.sessionId}`,
+        `Attendance already recorded for student in session ${record.sessionId}`,
       );
     }
 
-    // Step 4: Create and save the attendance record
+    // create record
     const attendanceRecord = queryRunner.manager.create(AttendanceRecord, {
       session_id: record.sessionId,
       session_student_id: sessionStudent.id,
@@ -143,7 +117,7 @@ export class OfflineService {
       method: record.method,
       marked_at: new Date(record.markedAt),
       remarks: record.remarks || null,
-      marked_by: userId, // User who performed the sync
+      marked_by: userId,
     });
 
     await queryRunner.manager.save(attendanceRecord);

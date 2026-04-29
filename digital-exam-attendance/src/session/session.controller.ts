@@ -17,18 +17,19 @@ import { SessionStudent } from './entities/session-students.entity';
 export class SessionController {
   constructor(private readonly sessionService: SessionService) { }
 
-  // COURSE ENDPOINTS
   @Roles('admin', 'teacher')
   @Post('course')
   async createCourse(@Body() dto: CreateCourseDto, @Request() req): Promise<Course> {
     return await this.sessionService.createCourse(dto, req.user.userId);
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get('course')
   async getAllCourses(): Promise<Course[]> {
     return await this.sessionService.getAllCourse();
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get('course/:id')
   async getCourse(@Param('id') id: string): Promise<Course> {
     return await this.sessionService.getCourseById(id);
@@ -46,23 +47,25 @@ export class SessionController {
     return this.sessionService.removeCourse(id, req.user.userId);
   }
 
-  // SESSION ENDPOINTS
   @Roles('admin', 'teacher')
   @Post()
   async create(@Body() dto: CreateSessionDto, @Request() req): Promise<Session> {
     return await this.sessionService.createSession(dto, req.user.userId);
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get()
   async findAll(): Promise<Session[]> {
     return await this.sessionService.getAllSessions();
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Session> {
     return await this.sessionService.getSessionById(id);
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get(':id/students')
   async getSessionStudents(@Param('id') id: string): Promise<SessionStudent[]> {
     return await this.sessionService.getStudentsBySessionId(id);

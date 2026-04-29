@@ -24,7 +24,6 @@ export class SessionService {
     private readonly sessionStudentRepository: Repository<SessionStudent>
   ) { }
 
-  //SESSION CRUD
   async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
     const session = this.sessionRepository.create({
       ...dto,
@@ -65,7 +64,6 @@ export class SessionService {
     return { message: `Session ${id} deleted successfully` };
   }
 
-  //COURSE CRUD
   async createCourse(createCourseDto: CreateCourseDto, userId: string): Promise<Course> {
     const course = this.courseRepository.create({
       ...createCourseDto,
@@ -104,14 +102,14 @@ export class SessionService {
     return { message: `Course ${id} deleted successfully` };
   }
 
-  //ENROLL STUDENTS TO A SESSION
+  // enrollment logic
   async enrollStudents(sessionId: string, dto: EnrollStudentsDto): Promise<SessionStudent[]> {
     const session = await this.getSessionById(sessionId);
     
-    // Process each student enrollment
+    // bulk process
     const enrollments: SessionStudent[] = [];
     for (const studentDto of dto.students) {
-      // Check if already enrolled by student_number to prevent duplicate errors
+      // avoid duplicates
       const existing = await this.sessionStudentRepository.findOne({
         where: { session_id: sessionId, student_number: studentDto.student_number }
       });
@@ -130,7 +128,7 @@ export class SessionService {
       return await this.sessionStudentRepository.save(enrollments);
     }
     
-    // Return current students if none were newly enrolled
+    // fallback to existing
     return await this.getStudentsBySessionId(sessionId);
   }
 

@@ -15,19 +15,19 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  @Roles('admin', 'teacher')
+  @Roles('admin', 'teacher', 'invigilator')
   @Post('mark')
   async markAttendance(@Body() dto: CreateAttendanceDto, @Request() req): Promise<AttendanceRecord> {
     return this.attendanceService.markAttendance(dto, req.user.userId);
   }
 
-  @Roles('admin', 'teacher')
+  @Roles('admin', 'teacher', 'invigilator')
   @Post('bulk-mark')
   async bulkMarkAttendance(@Body() dto: BulkMarkAttendanceDto, @Request() req): Promise<AttendanceRecord[]> {
     return this.attendanceService.bulkMarkAttendance(dto, req.user.userId);
   }
 
-  @Roles('admin', 'teacher')
+  @Roles('admin', 'teacher', 'invigilator')
   @Put(':id')
   async updateAttendance(
     @Param('id') id: string,
@@ -37,11 +37,13 @@ export class AttendanceController {
     return this.attendanceService.updateAttendance(id, dto, req.user.userId);
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get()
   async getAttendanceRecords(@Query() query: AttendanceQueryDto): Promise<AttendanceRecord[]> {
     return this.attendanceService.getAttendanceRecords(query);
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get('report/:sessionId')
   async getAttendanceReport(@Param('sessionId') sessionId: string): Promise<{
     totalEnrolled: number;
@@ -52,6 +54,7 @@ export class AttendanceController {
     return this.attendanceService.getAttendanceReport(sessionId);
   }
 
+  @Roles('admin', 'teacher', 'invigilator')
   @Get('manual-search/:sessionId')
   async searchStudentsForManualMark(
     @Param('sessionId') sessionId: string,
