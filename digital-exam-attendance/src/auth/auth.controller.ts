@@ -3,48 +3,56 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // REGISTER 
+  // public register
   @Post('register')
   register(@Body() dto: CreateUserDto) {
     return this.authService.createUser(dto);
   }
 
-  // LOGIN 
+  // public login
   @Post('login')
   login(@Body() body: { email: string; password: string }) {
     return this.authService.login(body.email, body.password);
   }
 
-  // GET PROFILE (protected) 
+  // get user profile
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   getProfile(@Request() req) {
     return this.authService.getUserById(req.user.userId);
   }
 
-  //GET USER BY ID (protected) 
-  @UseGuards(AuthGuard('jwt'))
+  // get user by id
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Get(':id')
   getUserById(@Param('id') id: string) {
     return this.authService.getUserById(id);
   }
 
-  // UPDATE USER (protected)
+  // update user info
   @UseGuards(AuthGuard('jwt'))
   @Put(':id')
-  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto, @Request() req) {
+    // self-update check
+    if (req.user.userId !== id) {
+      throw new Error('Unauthorized: Users can only update their own profile');
+    }
     return this.authService.updateUser(id, dto);
   }
 
-  //DELETE USER (protected)
-  @UseGuards(AuthGuard('jwt'))
+  // delete user
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Delete(':id')
-  deleteUser(@Param('id') id: string) {
+  deleteUser(@Param('id') id: string, @Request() req) {
     return this.authService.deleteProfile(id);
   }
 }

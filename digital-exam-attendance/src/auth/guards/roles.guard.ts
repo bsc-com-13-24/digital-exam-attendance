@@ -27,7 +27,7 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User not authenticated');
     }
 
-    // Get user with roles
+    // fetch roles
     const userWithRoles = await this.authService.getUserWithRoles(user.userId);
     
     if (!userWithRoles || !userWithRoles.roles) {

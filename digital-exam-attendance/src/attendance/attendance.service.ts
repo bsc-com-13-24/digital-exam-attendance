@@ -24,7 +24,7 @@ export class AttendanceService {
   ) {}
 
   async markAttendance(dto: CreateAttendanceDto, userId: string): Promise<AttendanceRecord> {
-    // Validate student is registered for the session
+    // check registration
     const sessionStudent = await this.sessionStudentRepository.findOne({
       where: { id: dto.session_student_id, session_id: dto.session_id },
     });
@@ -32,7 +32,7 @@ export class AttendanceService {
       throw new BadRequestException('Student is not registered for this session');
     }
 
-    // Check for duplicate entry
+    // no duplicates
     const existing = await this.attendanceRepository.findOne({
       where: { session_id: dto.session_id, session_student_id: dto.session_student_id },
     });
@@ -40,7 +40,7 @@ export class AttendanceService {
       throw new ConflictException('Attendance already marked for this student in the session');
     }
 
-    // Get session to check time
+    // time check
     const session = await this.sessionRepository.findOne({ where: { id: dto.session_id } });
     if (!session) {
       throw new NotFoundException('Session not found');
@@ -60,7 +60,7 @@ export class AttendanceService {
 
     const saved = await this.attendanceRepository.save(record);
 
-    // Log audit
+    // audit log
     await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
 
     return saved;
@@ -89,7 +89,7 @@ export class AttendanceService {
 
     const saved = await this.attendanceRepository.save(record);
 
-    // Log audit
+    // audit log
     await this.logAudit(updatedBy || 'system', 'UPDATE_ATTENDANCE', 'attendance_record', saved.id);
 
     return saved;

@@ -21,12 +21,11 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // CREATE 
   async createUser(dto: CreateUserDto): Promise<User> {
-    // Hashing the password before saving
+    // hash password
     const password_hash = await bcrypt.hash(dto.password, 10);
 
-    // Create the entity and map password → password_hash
+    // map fields
     const user = this.userRepository.create({
       first_name: dto.first_name,
       last_name: dto.last_name,
@@ -36,7 +35,7 @@ export class AuthService {
 
     const savedUser = await this.userRepository.save(user); 
 
-    // Assign role if provided
+    // set role
     if (dto.role) {
       const role = await this.roleRepository.findOne({ where: { name: dto.role.toLowerCase() } });
       if (role) {
@@ -51,7 +50,6 @@ export class AuthService {
     return this.getUserWithRoles(savedUser.id);
   }
 
-  // READ 
   async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
@@ -73,21 +71,18 @@ export class AuthService {
     return user;
   }
 
-  //UPDATE  
   async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     await this.getUserById(id);
     await this.userRepository.update(id, updateUserDto);
     return await this.getUserById(id);
   }
 
-  //DELETE 
   async deleteProfile(id: string): Promise<{ message: string }> {
     await this.getUserById(id);
     await this.userRepository.delete(id);
     return { message: `User with ID ${id} deleted successfully` };
   }
 
-  // LOGIN 
   async login(email: string, password: string) {
     const user = await this.getUserByEmail(email);
     if (!user) throw new UnauthorizedException('Wrong credentials');

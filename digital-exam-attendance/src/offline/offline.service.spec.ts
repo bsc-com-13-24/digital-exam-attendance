@@ -17,7 +17,7 @@ describe('OfflineService', () => {
   let mockQueryRunner: any;
 
   beforeEach(async () => {
-    // Mock QueryRunner
+    // setup mocks
     mockQueryRunner = {
       connect: jest.fn(),
       startTransaction: jest.fn(),
@@ -31,12 +31,10 @@ describe('OfflineService', () => {
       },
     };
 
-    // Mock DataSource
     mockDataSource = {
       createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
     };
 
-    // Mock Repositories
     mockAttendanceRepo = {
       findOne: jest.fn(),
       create: jest.fn(),
@@ -107,10 +105,7 @@ describe('OfflineService', () => {
       };
 
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession) // Session check
-        .mockResolvedValueOnce(mockSessionStudent) // SessionStudent check
-        .mockResolvedValueOnce(null); // Existing record check
-
+        .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(mockSessionStudent)        .mockResolvedValueOnce(null);
       mockQueryRunner.manager.create.mockReturnValue({
         session_id: 'session-1',
         student_id: 'student-1',
@@ -140,8 +135,7 @@ describe('OfflineService', () => {
         offlineRecords: [mockRecord],
       };
 
-      mockQueryRunner.manager.findOne.mockResolvedValueOnce(null); // No session found
-
+      mockQueryRunner.manager.findOne.mockResolvedValueOnce(null);
       const result = await service.syncOfflineRecords(syncDto);
 
       expect(result.failureCount).toBe(1);
@@ -165,9 +159,7 @@ describe('OfflineService', () => {
       };
 
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession) // Session found
-        .mockResolvedValueOnce(null); // Student not registered
-
+        .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(null);
       const result = await service.syncOfflineRecords(syncDto);
 
       expect(result.failureCount).toBe(1);
@@ -194,10 +186,7 @@ describe('OfflineService', () => {
       };
 
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession) // Session found
-        .mockResolvedValueOnce(mockSessionStudent) // Student registered
-        .mockResolvedValueOnce(mockExistingRecord); // Duplicate record exists
-
+        .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(mockSessionStudent)        .mockResolvedValueOnce(mockExistingRecord);
       const result = await service.syncOfflineRecords(syncDto);
 
       expect(result.failureCount).toBe(1);
@@ -232,12 +221,11 @@ describe('OfflineService', () => {
         offlineRecords: records,
       };
 
-      // First record succeeds
       mockQueryRunner.manager.findOne
         .mockResolvedValueOnce(mockSession)
         .mockResolvedValueOnce(mockSessionStudent)
         .mockResolvedValueOnce(null)
-        // Second record fails (no session)
+        // record 2 fails
         .mockResolvedValueOnce(null);
 
       mockQueryRunner.manager.create.mockReturnValue({});
