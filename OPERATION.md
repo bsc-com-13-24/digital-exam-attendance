@@ -24,11 +24,11 @@ Complete guide for setting up, running, and testing the Digital Exam Attendance 
 - **npm**: v9.x or higher
 - **Oracle Database**: XE 21c or higher
 - **Git**: For version control
+- **Postman**: For manual API testing
+- **VS Code**: Recommended IDE with TypeScript support
 
 ### Optional Tools
-- **Postman**: For manual API testing
 - **Docker**: For Oracle Database (if not installing locally)
-- **VS Code**: Recommended IDE with TypeScript support
 
 ---
 
@@ -925,23 +925,6 @@ PORT=3001 npm run start:dev
 - [Jest Testing](https://jestjs.io)
 
 ---
-
-**Last Updated**: April 30, 2026
-**Version**: 1.0.0
-  ]
-}
-
- **Method**: `POST`
-- **Endpoint**: `/api/v1/attendance/mark`
-- **Auth**: Required (Admin/Teacher)
-- **Body**:
-```json
-{
-  "session_id": "<session_id>",
-  "session_student_id": "<uuid_from_enroll_response>",
-  "status": "present",
-  "method": "scan"
-}
 
 
 

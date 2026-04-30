@@ -37,11 +37,10 @@ export class OfflineRecordRequestDto {
   remarks?: string;
 }
 
-    @UpdateDateColumn({name: 'update_at'})
+    /*@UpdateDateColumn({name: 'update_at'})
     updated_at!: Date;
-}
 
 export class equestSyncOfflineDto{
     device_id!:string;
     OfflineRecords!: OfflineRecordDto[];
-}
+}*/
