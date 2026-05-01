@@ -16,9 +16,11 @@ import { Session } from './session/entities/sessions.entity';
 import { SessionStudent } from './session/entities/session-students.entity';
 import { AttendanceRecord } from './attendance/entities/attendance-records.entity';
 import { AuditLog } from './attendance/entities/audit-logs.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -53,4 +55,4 @@ import { AuditLog } from './attendance/entities/audit-logs.entity';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
