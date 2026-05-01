@@ -24,7 +24,7 @@ export class AttendanceService {
   ) {}
 
   async markAttendance(dto: CreateAttendanceDto, userId: string): Promise<AttendanceRecord> {
-    // check registration
+    // this checks if the student is enrolled in the session.
     const sessionStudent = await this.sessionStudentRepository.findOne({
       where: { id: dto.session_student_id, session_id: dto.session_id },
     });
@@ -32,13 +32,17 @@ export class AttendanceService {
       throw new BadRequestException('Student is not registered for this session');
     }
 
-    // no duplicates
-    const existing = await this.attendanceRepository.findOne({
+    /*I have to come up with a way that marks the attendance two times, the first time the student's status
+    marked as present and the second time it will be marked as completed.*/
+    
+
+    // this avoids marking attendance multiple times for the same student in the same session.
+    /*const existing = await this.attendanceRepository.findOne({
       where: { session_id: dto.session_id, session_student_id: dto.session_student_id },
     });
     if (existing) {
       throw new ConflictException('Attendance already marked for this student in the session');
-    }
+    }*/
 
     // time check
     const session = await this.sessionRepository.findOne({ where: { id: dto.session_id } });
