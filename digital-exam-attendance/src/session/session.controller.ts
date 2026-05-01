@@ -72,7 +72,7 @@ export class SessionController {
   }
 
   @Roles('admin', 'teacher')
-  @Post(':id/enroll')
+  @Post(':id/enrollments')
   async enrollStudents(@Param('id') id: string, @Body() dto: EnrollStudentsDto): Promise<SessionStudent[]> {
     return await this.sessionService.enrollStudents(id, dto);
   }
