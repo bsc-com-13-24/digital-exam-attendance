@@ -91,7 +91,6 @@ docker exec -it oracle-xe sqlplus sys/digitalpassword@localhost:1521/XE as sysdb
 
 Navigate to project root:
 ```bash
-cd /home/allan/DEV/WEB-LAB/digital-exam-attendance/digital-exam-attendance
 npm install
 ```
 
@@ -221,6 +220,17 @@ This generates a coverage directory with:
 Target coverage: **80%+ for all modules**
 
 ---
+## Oracle database inserting roles
+
+INSERT INTO "roles" ("id", "name", "display_name") VALUES 
+  (SYS_GUID(), 'admin', 'Administrator');
+
+INSERT INTO "roles" ("id", "name", "display_name") VALUES 
+  (SYS_GUID(), 'teacher', 'Teacher');
+
+INSERT INTO "roles" ("id","name","display_name") VALUES (SYS_GUID(),'invigilator','Invigilator');  
+
+COMMIT;
 
 ## API Endpoints Reference
 
