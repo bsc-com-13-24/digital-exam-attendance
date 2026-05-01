@@ -7,14 +7,15 @@ import { Course } from './entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
 import { AuthModule } from '../auth/auth.module';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { SessionSchedulerService } from './session.scheduler';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Session, Course, SessionStudent]),
     AuthModule,
   ],
-  providers: [SessionService, RolesGuard],
+  providers: [SessionService, RolesGuard, SessionSchedulerService],
   controllers: [SessionController],
   exports: [SessionService],
 })
-export class SessionModule {}
+export class SessionModule { }
