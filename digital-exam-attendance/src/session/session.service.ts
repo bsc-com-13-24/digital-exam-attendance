@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Session } from './entities/sessions.entity';
@@ -6,7 +10,7 @@ import { Course } from './entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
-import { AddStudentDto } from './dto/add-student.dto';
+//import { AddStudentDto } from './dto/add-student.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { EnrollStudentsDto } from './dto/enroll-students.dto';
@@ -21,8 +25,8 @@ export class SessionService {
     private readonly courseRepository: Repository<Course>,
 
     @InjectRepository(SessionStudent)
-    private readonly sessionStudentRepository: Repository<SessionStudent>
-  ) { }
+    private readonly sessionStudentRepository: Repository<SessionStudent>,
+  ) {}
 
   async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
     const session = this.sessionRepository.create({
@@ -38,7 +42,7 @@ export class SessionService {
 
   async getSessionById(id: string): Promise<Session> {
     const session = await this.sessionRepository.findOne({
-      where: { id }
+      where: { id },
     });
     if (!session) {
       throw new NotFoundException(`Session with ID ${id} not found`);
@@ -46,7 +50,11 @@ export class SessionService {
     return session;
   }
 
-  async updateSession(id: string, updateSessionDto: UpdateSessionDto, userId: string): Promise<Session> {
+  async updateSession(
+    id: string,
+    updateSessionDto: UpdateSessionDto,
+    userId: string,
+  ): Promise<Session> {
     const session = await this.getSessionById(id);
     if (session.created_by !== userId) {
       throw new ForbiddenException('You can only update sessions you created');
@@ -55,7 +63,10 @@ export class SessionService {
     return await this.getSessionById(id);
   }
 
-  async removeSession(id: string, userId: string): Promise<{ message: string }> {
+  async removeSession(
+    id: string,
+    userId: string,
+  ): Promise<{ message: string }> {
     const session = await this.getSessionById(id);
     if (session.created_by !== userId) {
       throw new ForbiddenException('You can only delete sessions you created');
@@ -64,7 +75,10 @@ export class SessionService {
     return { message: `Session ${id} deleted successfully` };
   }
 
-  async createCourse(createCourseDto: CreateCourseDto, userId: string): Promise<Course> {
+  async createCourse(
+    createCourseDto: CreateCourseDto,
+    userId: string,
+  ): Promise<Course> {
     const course = this.courseRepository.create({
       ...createCourseDto,
       created_by: userId,
@@ -84,7 +98,11 @@ export class SessionService {
     return course;
   }
 
-  async updateCourse(id: string, updateCourseDto: UpdateCourseDto, userId: string): Promise<Course> {
+  async updateCourse(
+    id: string,
+    updateCourseDto: UpdateCourseDto,
+    userId: string,
+  ): Promise<Course> {
     const course = await this.getCourseById(id);
     if (course.created_by !== userId) {
       throw new ForbiddenException('You can only update courses you created');
@@ -103,17 +121,23 @@ export class SessionService {
   }
 
   // enrollment logic
-  async enrollStudents(sessionId: string, dto: EnrollStudentsDto): Promise<SessionStudent[]> {
+  async enrollStudents(
+    sessionId: string,
+    dto: EnrollStudentsDto,
+  ): Promise<SessionStudent[]> {
     const session = await this.getSessionById(sessionId);
-    
+
     // bulk process
     const enrollments: SessionStudent[] = [];
     for (const studentDto of dto.students) {
       // avoid duplicates
       const existing = await this.sessionStudentRepository.findOne({
-        where: { session_id: sessionId, student_number: studentDto.student_number }
+        where: {
+          session_id: sessionId,
+          student_number: studentDto.student_number,
+        },
       });
-      
+
       if (!existing) {
         const enrollment = this.sessionStudentRepository.create({
           session_id: sessionId,
@@ -127,7 +151,7 @@ export class SessionService {
     if (enrollments.length > 0) {
       return await this.sessionStudentRepository.save(enrollments);
     }
-    
+
     // fallback to existing
     return await this.getStudentsBySessionId(sessionId);
   }
