@@ -7,7 +7,7 @@ import { DashboardService } from './dashboard.service';
 @Controller('dashboard')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class DashboardController {
-  /*constructor(private readonly dashboardService: DashboardService) {}
+  constructor(private readonly dashboardService: DashboardService) {}
 
   @Roles('admin', 'teacher')
   @Get('session/:sessionId')
@@ -40,5 +40,5 @@ export class DashboardController {
   @Get('statistics/overall')
   async getOverallStatistics(@Request() req) {
     return this.dashboardService.getOverallStatistics(req.user.userId);
-  }*/
+  }
 }
