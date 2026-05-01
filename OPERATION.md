@@ -456,7 +456,7 @@ Response: 201 Created
 
 #### Mark Attendance
 ```
-POST /attendance
+POST /attendance/mark
 Authorization: Bearer <access_token>
 Content-Type: application/json
 
@@ -471,7 +471,7 @@ Response: 201 Created
 {
   "id": "uuid",
   "session_id": "uuid",
-  "student_id": "uuid",
+  "session_student_id": "uuid",
   "status": "present",
   "method": "biometric",
   "timestamp": "2026-05-01T09:15:00Z"
@@ -480,7 +480,7 @@ Response: 201 Created
 
 #### Get Attendance Records
 ```
-GET /attendance?session_id=<uuid>&status=present
+GET /attendance/bulk?session_id=<uuid>&status=present
 Authorization: Bearer <access_token>
 
 Response: 200 OK
@@ -488,7 +488,7 @@ Response: 200 OK
   {
     "id": "uuid",
     "session_id": "uuid",
-    "student_id": "uuid",
+    "session_student_id": "uuid",
     "status": "present",
     "method": "biometric",
     "timestamp": "2026-05-01T09:15:00Z"
@@ -507,11 +507,11 @@ Content-Type: application/json
   "session_id": "uuid",
   "records": [
     {
-      "student_id": "uuid1",
+      "session_student_id": "uuid1",
       "status": "present"
     },
     {
-      "student_id": "uuid2",
+      "session_student_id": "uuid2",
       "status": "absent"
     }
   ]
@@ -629,7 +629,7 @@ Content-Type: application/json
   "attendance_records": [
     {
       "session_id": "uuid",
-      "student_id": "uuid",
+      "session_student_id": "uuid",
       "status": "present",
       "timestamp": "2026-05-01T09:15:00Z"
     }
