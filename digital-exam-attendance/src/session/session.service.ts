@@ -10,7 +10,7 @@ import { Course } from './entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
-//import { AddStudentDto } from './dto/add-student.dto';
+import { AddStudentDto } from './dto/add-student.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { EnrollStudentsDto } from './dto/enroll-students.dto';
@@ -36,8 +36,15 @@ export class SessionService {
     return await this.sessionRepository.save(session);
   }
 
-  async getAllSessions(): Promise<Session[]> {
-    return await this.sessionRepository.find();
+  async getAllSessions(status?: string): Promise<Session[]> {
+    if (status) {
+      return await this.sessionRepository.find({
+        where: { status },
+        relations: ['course'],
+        order: { scheduled_start: 'ASC' },
+      });
+    }
+    return await this.sessionRepository.find({ order: { scheduled_start: 'ASC' } });
   }
 
   async getSessionById(id: string): Promise<Session> {
@@ -48,6 +55,14 @@ export class SessionService {
       throw new NotFoundException(`Session with ID ${id} not found`);
     }
     return session;
+  }
+
+  async getSessionByStatus(status: string): Promise<Session[]> {
+    return await this.sessionRepository.find({
+      where: { status },
+      relations: ['course'],
+      order: { scheduled_start: 'ASC' },
+    });
   }
 
   async updateSession(
@@ -73,6 +88,11 @@ export class SessionService {
     }
     await this.sessionRepository.delete(id);
     return { message: `Session ${id} deleted successfully` };
+  }
+
+  // Alias used by the controller
+  async deleteSession(id: string, userId: string): Promise<{ message: string }> {
+    return this.removeSession(id, userId);
   }
 
   async createCourse(
@@ -120,6 +140,15 @@ export class SessionService {
     return { message: `Course ${id} deleted successfully` };
   }
 
+  // Aliases used by the controller
+  async deleteCourse(id: string, userId: string): Promise<{ message: string }> {
+    return this.removeCourse(id, userId);
+  }
+
+  async getAllCourses(): Promise<Course[]> {
+    return this.getAllCourse();
+  }
+
   // enrollment logic
   async enrollStudents(
     sessionId: string,
@@ -159,7 +188,11 @@ export class SessionService {
   async getStudentsBySessionId(sessionId: string): Promise<SessionStudent[]> {
     return await this.sessionStudentRepository.find({
       where: { session_id: sessionId },
-      relations: ['student'],
     });
+  }
+
+  // Alias used by the controller
+  async getStudentsInSession(sessionId: string): Promise<SessionStudent[]> {
+    return this.getStudentsBySessionId(sessionId);
   }
 }
