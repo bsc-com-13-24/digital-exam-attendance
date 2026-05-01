@@ -152,11 +152,13 @@ export class AttendanceService {
   }
 
   async searchStudentsForManualMark(sessionId: string, search: string): Promise<SessionStudent[]> {
+    const upperSearch = `%${search.toUpperCase()}%`;
     return this.sessionStudentRepository.createQueryBuilder('ss')
-      .leftJoinAndSelect('ss.student', 'student')
       .where('ss.session_id = :sessionId', { sessionId })
-      .andWhere('(ss.student_number ILIKE :search OR ss.full_name ILIKE :search OR student.email ILIKE :search)')
-      .setParameters({ search: `%${search}%` })
+      .andWhere(
+        '(UPPER(ss.student_number) LIKE :search OR UPPER(ss.full_name) LIKE :search)',
+        { search: upperSearch },
+      )
       .getMany();
   }
 

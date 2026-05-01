@@ -1,6 +1,6 @@
-# Digital Exam Attendance System - OPERATION GUIDE
+# Digital Exam Attendance System — Operations Guide
 
-Complete guide for setting up, running, and testing the Digital Exam Attendance System.
+> A comprehensive reference for setting up, running, and testing the Digital Exam Attendance System.
 
 ---
 
@@ -10,49 +10,54 @@ Complete guide for setting up, running, and testing the Digital Exam Attendance 
 2. [Database Setup](#database-setup)
 3. [Project Setup](#project-setup)
 4. [Running the Application](#running-the-application)
-5. [Testing Requirements](#testing-requirements)
-6. [API Endpoints Reference](#api-endpoints-reference)
+5. [Database Seed Data](#database-seed-data)
+6. [API Reference](#api-reference)
 7. [Testing Workflows](#testing-workflows)
-8. [Troubleshooting](#troubleshooting)
+8. [Running Tests](#running-tests)
+9. [Troubleshooting](#troubleshooting)
+10. [Quick Command Reference](#quick-command-reference)
 
 ---
 
 ## Prerequisites
 
 ### Required Software
-- **Node.js**: v18.x or higher
-- **npm**: v9.x or higher
-- **Oracle Database**: XE 21c or higher
-- **Git**: For version control
-- **Postman**: For manual API testing
-- **VS Code**: Recommended IDE with TypeScript support
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Node.js | v18.x or higher | Runtime environment |
+| npm | v9.x or higher | Package manager |
+| Oracle Database | XE 21c or higher | Primary database |
+| Git | Any | Version control |
+| Postman | Any | API testing |
 
 ### Optional Tools
-- **Docker**: For Oracle Database (if not installing locally)
+
+- **Docker** — For running Oracle Database without a local installation
 
 ---
 
 ## Database Setup
 
-### Option 1: Oracle SQL Plus Installation
+### Option 1: Oracle SQL*Plus (Local Install)
 
-#### Step 1: Create Pluggable Database
+**Step 1 — Create a Pluggable Database**
 ```sql
 CREATE PLUGGABLE DATABASE digital_attendance_pdb
-ADMIN USER digital_admin IDENTIFIED BY digitalpassword
-FILE_NAME_CONVERT = (
+  ADMIN USER digital_admin IDENTIFIED BY digitalpassword
+  FILE_NAME_CONVERT = (
     'C:\oracle\oradata\XE\pdbseed\',
     'C:\oracle\oradata\XE\digital_attendance_pdb\'
-);
+  );
 ```
 
-#### Step 2: Open Database and Save State
+**Step 2 — Open and Persist the Database**
 ```sql
 ALTER PLUGGABLE DATABASE digital_attendance_pdb OPEN;
 ALTER PLUGGABLE DATABASE digital_attendance_pdb SAVE STATE;
 ```
 
-#### Step 3: Create Application User
+**Step 3 — Create the Application User**
 ```sql
 ALTER SESSION SET CONTAINER = digital_attendance_pdb;
 
@@ -60,16 +65,16 @@ CREATE USER digital_user IDENTIFIED BY digitalpassword;
 GRANT CONNECT, RESOURCE, DBA TO digital_user;
 ```
 
-#### Step 4: Verify User Creation
+**Step 4 — Verify**
 ```sql
 SELECT username FROM dba_users WHERE username = 'DIGITAL_USER';
 ```
 
 ---
 
-### Option 2: Docker Installation
+### Option 2: Docker
 
-#### Run Oracle XE in Docker
+**Run Oracle XE in a container**
 ```bash
 docker run -d \
   --name oracle-xe \
@@ -78,28 +83,27 @@ docker run -d \
   gvenzl/oracle-xe:21c-slim
 ```
 
-#### Create Database Inside Container
+**Connect and run your setup script**
 ```bash
-docker exec -it oracle-xe sqlplus sys/digitalpassword@localhost:1521/XE as sysdba @/path/to/setup.sql
+docker exec -it oracle-xe sqlplus sys/digitalpassword@localhost:1521/XE as sysdba
 ```
 
 ---
 
 ## Project Setup
 
-### Step 1: Install Dependencies
+### Step 1 — Install Dependencies
 
-Navigate to project root:
 ```bash
-cd /home/allan/DEV/WEB-LAB/digital-exam-attendance/digital-exam-attendance
 npm install
 ```
 
-### Step 2: Configure Environment Variables
+### Step 2 — Configure Environment Variables
 
-Create `.env` file in project root:
+Create a `.env` file in the project root:
+
 ```env
-# Database Configuration
+# Database
 DB_TYPE=oracle
 DB_HOST=localhost
 DB_PORT=1521
@@ -108,16 +112,16 @@ DB_PASSWORD=digitalpassword
 DB_DATABASE=digital_attendance_pdb
 DB_SID=XE
 
-# JWT Configuration
-JWT_SECRET=your-secret-key-here
+# Authentication
+JWT_SECRET=your-strong-secret-key-here
 JWT_EXPIRATION=7d
 
-# Application Port
+# Server
 PORT=3000
 NODE_ENV=development
 ```
 
-### Step 3: Build the Project
+### Step 3 — Build the Project
 
 ```bash
 npm run build
@@ -127,521 +131,214 @@ npm run build
 
 ## Running the Application
 
-### Development Mode (Recommended for Testing)
-```bash
-npm run start:dev
-```
-This runs with hot-reload enabled. Application will be available at `http://localhost:3000`
+| Mode | Command | Notes |
+|------|---------|-------|
+| Development | `npm run start:dev` | Hot-reload enabled. Recommended for testing. |
+| Production | `npm run start:prod` | Optimised build. |
+| Debug | `npm run start:debug` | Attaches debugger at `chrome://inspect`. |
 
-### Production Mode
-```bash
-npm run start:prod
-```
-
-### Debug Mode
-```bash
-npm run start:debug
-```
-Debugger will be available at `chrome://inspect`
+Application URL: `http://localhost:3000/api/v1`
 
 ---
 
-## Testing Requirements
+## Database Seed Data
 
-### Unit Tests
+Before registering users, the `roles` table must be populated. Run the following SQL in Oracle SQL Developer or SQL*Plus:
 
-Run all unit tests:
-```bash
-npm run test
+```sql
+INSERT INTO "roles" ("id", "name", "display_name")
+  VALUES (SYS_GUID(), 'admin', 'Administrator');
+
+INSERT INTO "roles" ("id", "name", "display_name")
+  VALUES (SYS_GUID(), 'teacher', 'Teacher');
+
+INSERT INTO "roles" ("id", "name", "display_name")
+  VALUES (SYS_GUID(), 'invigilator', 'Invigilator');
+
+COMMIT;
 ```
 
-Watch mode (runs on file changes):
-```bash
-npm run test:watch
-```
-
-With coverage report:
-```bash
-npm run test:cov
-```
-
-Debug mode:
-```bash
-npm run test:debug
-```
-
-#### Test Modules
-
-The following modules have test specifications:
-
-| Module | File | Status | Tests |
-|--------|------|--------|-------|
-| **App** | `src/app.controller.spec.ts` | ✅ Implemented | Controller tests |
-| **Auth** | `src/auth/auth.controller.spec.ts` | ✅ Implemented | Login, registration, JWT |
-| | `src/auth/auth.service.spec.ts` | ✅ Implemented | User auth logic |
-| **Attendance** | `src/attendance/attendance.controller.spec.ts` | ✅ Implemented | Attendance endpoints |
-| | `src/attendance/attendance.service.spec.ts` | ✅ Implemented | Attendance business logic |
-| **Session** | `src/session/session.controller.spec.ts` | ✅ Implemented | Session management |
-| | `src/session/session.service.spec.ts` | ✅ Implemented | Session service logic |
-| **Dashboard** | `src/dashboard/dashboard.controller.spec.ts` | ✅ Implemented | Dashboard endpoints |
-| | `src/dashboard/dashboard.service.spec.ts` | ✅ Implemented | Dashboard analytics |
-| **Offline** | `src/offline/offline.controller.spec.ts` | ✅ Implemented | Offline sync endpoints |
-| | `src/offline/offline.service.spec.ts` | ✅ Implemented | Offline sync logic |
+> **Note:** The double quotes are required because TypeORM creates lowercase table and column names in Oracle.
 
 ---
 
-### Integration Tests
+## API Reference
 
-Run E2E tests:
-```bash
-npm run test:e2e
+**Base URL:** `http://localhost:3000/api/v1`
+
+All protected endpoints require a Bearer token in the `Authorization` header:
 ```
-
-E2E test configuration file: `test/jest-e2e.json`
-
-E2E test specification: `test/app.e2e-spec.ts`
+Authorization: Bearer <access_token>
+```
 
 ---
 
-### Test Coverage
+### Authentication — `/auth`
 
-Generate coverage report:
-```bash
-npm run test:cov
-```
-
-This generates a coverage directory with:
-- HTML report: `coverage/index.html`
-- Coverage summary showing:
-  - Line coverage
-  - Branch coverage
-  - Function coverage
-  - Statement coverage
-
-Target coverage: **80%+ for all modules**
-
----
-
-## API Endpoints Reference
-
-### Authentication Module (`/auth`)
-
-#### Register User
+#### Register a User
 ```
 POST /auth/register
-Content-Type: application/json
-
+```
+```json
 {
   "first_name": "Alice",
   "last_name": "Smith",
   "email": "alice@example.com",
-  "password": "secure_password_123",
+  "password": "SecurePass123",
   "role": "teacher"
 }
-
-Response: 201 Created
-{
-  "id": "uuid",
-  "email": "alice@example.com",
-  "first_name": "Alice",
-  "last_name": "Smith",
-  "role": "teacher",
-  "created_at": "2026-04-30T10:00:00Z"
-}
 ```
+Valid roles: `admin`, `teacher`, `invigilator`
 
-#### Login User
+---
+
+#### Login
 ```
 POST /auth/login
-Content-Type: application/json
-
+```
+```json
 {
   "email": "alice@example.com",
-  "password": "secure_password_123"
-}
-
-Response: 200 OK
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "token_type": "Bearer",
-  "expires_in": 604800
+  "password": "SecurePass123"
 }
 ```
+**Response:** Returns `access_token` — copy this for all subsequent requests.
 
-#### Get User Profile
+---
+
+#### Get Current User Profile
 ```
 GET /auth/profile
 Authorization: Bearer <access_token>
-
-Response: 200 OK
-{
-  "id": "uuid",
-  "email": "alice@example.com",
-  "first_name": "Alice",
-  "last_name": "Smith",
-  "role": "teacher"
-}
-```
-
-#### Change Password
-```
-POST /auth/change-password
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "old_password": "secure_password_123",
-  "new_password": "new_secure_password_456"
-}
-
-Response: 200 OK
-{
-  "message": "Password changed successfully"
-}
 ```
 
 ---
 
-### Session Module (`/session`)
+### Courses — `/session/course`
 
-#### Create Course
-```
-POST /session/course
-Authorization: Bearer <access_token>
-Content-Type: application/json
+| Method | Endpoint | Role Required | Description |
+|--------|----------|---------------|-------------|
+| `POST` | `/session/course` | Admin, Teacher | Create a new course |
+| `GET` | `/session/course` | All | List all courses |
+| `GET` | `/session/course/:id` | All | Get a course by ID |
+| `PATCH` | `/session/course/:id` | Admin, Teacher (creator only) | Update a course |
+| `DELETE` | `/session/course/:id` | Admin, Teacher (creator only) | Delete a course |
 
+**Create Course body:**
+```json
 {
   "code": "CS101",
   "name": "Introduction to Computer Science"
 }
+```
 
-Response: 201 Created
+---
+
+### Sessions — `/session`
+
+| Method | Endpoint | Role Required | Description |
+|--------|----------|---------------|-------------|
+| `POST` | `/session` | Admin, Teacher | Create an exam session |
+| `GET` | `/session` | All | List all sessions |
+| `GET` | `/session?status=active` | All | Filter sessions by status |
+| `GET` | `/session/:id` | All | Get a session by ID |
+| `PATCH` | `/session/:id` | Admin, Teacher (creator only) | Update a session |
+| `DELETE` | `/session/:id` | Admin, Teacher (creator only) | Delete a session |
+| `POST` | `/session/:id/enrollments` | Admin, Teacher | Enroll students into session |
+| `GET` | `/session/:id/students` | All | List enrolled students |
+
+**Session statuses:** `upcoming` → `active` → `expired` _(auto-managed by the scheduler)_
+
+**Create Session body:**
+```json
 {
-  "id": "uuid",
-  "code": "CS101",
-  "name": "Introduction to Computer Science",
-  "created_at": "2026-04-30T10:00:00Z"
-}
-```
-
-#### List Courses
-```
-GET /session/course
-Authorization: Bearer <access_token>
-
-Response: 200 OK
-[
-  {
-    "id": "uuid",
-    "code": "CS101",
-    "name": "Introduction to Computer Science"
-  },
-  ...
-]
-```
-
-#### Update Course
-```
-PUT /session/course/<course_id>
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "code": "CS101",
-  "name": "Intro to CS - Updated"
-}
-
-Response: 200 OK
-{
-  "id": "uuid",
-  "code": "CS101",
-  "name": "Intro to CS - Updated"
-}
-```
-
-#### Create Session
-```
-POST /session
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "title": "Final Exam - CS101",
+  "title": "Final Exam — CS101",
   "venue": "Hall A",
-  "scheduled_start": "2026-05-01T09:00:00Z",
-  "scheduled_end": "2026-05-01T12:00:00Z",
-  "course_id": "<course_uuid>"
-}
-
-Response: 201 Created
-{
-  "id": "uuid",
-  "title": "Final Exam - CS101",
-  "venue": "Hall A",
-  "scheduled_start": "2026-05-01T09:00:00Z",
-  "scheduled_end": "2026-05-01T12:00:00Z",
-  "status": "upcoming",
+  "scheduled_start": "2026-05-15T09:00:00Z",
+  "scheduled_end": "2026-05-15T12:00:00Z",
   "course_id": "<course_uuid>"
 }
 ```
 
-#### List Sessions
-```
-GET /session
-Authorization: Bearer <access_token>
-
-Response: 200 OK
-[
-  {
-    "id": "uuid",
-    "title": "Final Exam - CS101",
-    "venue": "Hall A",
-    "status": "upcoming",
-    "scheduled_start": "2026-05-01T09:00:00Z",
-    "scheduled_end": "2026-05-01T12:00:00Z"
-  },
-  ...
-]
-```
-
-#### Update Session
-```
-PUT /session/<session_id>
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "title": "Final Exam - CS101 - Updated",
-  "venue": "Hall B"
-}
-
-Response: 200 OK
-{
-  "id": "uuid",
-  "title": "Final Exam - CS101 - Updated",
-  "venue": "Hall B"
-}
-```
-
-#### Enroll Students in Session
-```
-POST /session/<session_id>/enroll
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
+**Enroll Students body:**
+```json
 {
   "students": [
-    {
-      "student_number": "BIT/COM/13/24",
-      "full_name": "Alice Smith"
-    },
-    {
-      "student_number": "BIT/COM/15/24",
-      "full_name": "Bob Johnson"
-    }
+    { "student_number": "BSC/COM/02/24", "full_name": "Jamu Latisha" },
+    { "student_number": "BSC/52/24", "full_name": "Kaluluma Jessica Ndense" },
+    { "student_number": "BSC/INF/09/24", "full_name": "Mike Kamanga" },
+    {"student_number": "BSC/COM/02/24}", "full_name" : "Nick Tsokalida" },
+    {"student_number": "BSC/COM/03/24}", "full_name" : "Paul Mongola" },
+    {"student_number": "BED/COM/02/24}", "full_name" : "Paul Nangantani" },
+    {"student_number": "BSC/COM/NE/02/24}", "full_name" : "Alfred Lonjezo" },
+    {"student_number": "BSC/ELE/20/24}", "full_name" : "Lisa Kanyenda" },
+    {"student_number": "BSC/INF/40/24}", "full_name" : "Patrick Solomon" },
+    {"student_number": "BSC/01/24}", "full_name" : "Christopher Chisamba" },
+    {"student_number": "BSC/COM/27/24}", "full_name" : "Mordecai Kalulu" }
   ]
 }
-
-Response: 201 Created
-{
-  "enrolled_count": 2,
-  "session_id": "uuid",
-  "students": [...]
-}
 ```
+> Students are identified by their institutional student number — they do **not** need user accounts in the system.
 
 ---
 
-### Attendance Module (`/attendance`)
+### Attendance — `/attendance`
 
-#### Mark Attendance
-```
-POST /attendance
-Authorization: Bearer <access_token>
-Content-Type: application/json
+| Method | Endpoint | Role Required | Description |
+|--------|----------|---------------|-------------|
+| `POST` | `/attendance/mark` | Admin, Teacher | Mark a single student |
+| `POST` | `/attendance/bulk-mark` | Admin, Teacher | Mark multiple students at once |
+| `PATCH` | `/attendance/:id` | Admin, Teacher | Update an attendance record |
+| `GET` | `/attendance` | All | Query attendance records |
+| `GET` | `/attendance/report/:sessionId` | All | Get session attendance summary |
 
+**Mark Attendance body:**
+```json
 {
-  "session_id": "uuid",
-  "student_id": "uuid",
+  "session_id": "<session_uuid>",
+  "session_student_id": "<session_student_uuid>",
   "status": "present",
-  "method": "biometric"
-}
-
-Response: 201 Created
-{
-  "id": "uuid",
-  "session_id": "uuid",
-  "student_id": "uuid",
-  "status": "present",
-  "method": "biometric",
-  "timestamp": "2026-05-01T09:15:00Z"
+  "method": "scan"
 }
 ```
 
-#### Get Attendance Records
-```
-GET /attendance?session_id=<uuid>&status=present
-Authorization: Bearer <access_token>
-
-Response: 200 OK
-[
-  {
-    "id": "uuid",
-    "session_id": "uuid",
-    "student_id": "uuid",
-    "status": "present",
-    "method": "biometric",
-    "timestamp": "2026-05-01T09:15:00Z"
-  },
-  ...
-]
-```
-
-#### Bulk Mark Attendance
-```
-POST /attendance/bulk
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
+**Bulk Mark body:**
+```json
 {
-  "session_id": "uuid",
+  "session_id": "<session_uuid>",
   "records": [
-    {
-      "student_id": "uuid1",
-      "status": "present"
-    },
-    {
-      "student_id": "uuid2",
-      "status": "absent"
-    }
+    { "session_id": "<session_uuid>", "session_student_id": "<id1>", "status": "present", "method": "scan" },
+    { "session_id": "<session_uuid>", "session_student_id": "<id2>", "status": "late", "method": "manual" }
   ]
 }
-
-Response: 201 Created
-{
-  "marked_count": 2,
-  "records": [...]
-}
 ```
 
-#### Update Attendance Record
-```
-PUT /attendance/<attendance_id>
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "status": "late"
-}
-
-Response: 200 OK
-{
-  "id": "uuid",
-  "status": "late",
-  "updated_at": "2026-05-01T10:00:00Z"
-}
-```
-
-#### Get Attendance Report
-```
-GET /attendance/report/<session_id>
-Authorization: Bearer <access_token>
-
-Response: 200 OK
-{
-  "session_id": "uuid",
-  "total_enrolled": 50,
-  "present": 45,
-  "absent": 3,
-  "late": 2,
-  "attendance_rate": "90%"
-}
-```
+Valid statuses: `present`, `absent`, `late`
+Valid methods: `scan`, `manual`
 
 ---
 
-### Dashboard Module (`/dashboard`)
+### Offline Sync — `/offline`
 
-#### Get Active Session Stats
-```
-GET /dashboard/active-session
-Authorization: Bearer <access_token>
+| Method | Endpoint | Role Required | Description |
+|--------|----------|---------------|-------------|
+| `POST` | `/offline/sync` | Admin, Teacher | Sync records captured offline |
 
-Response: 200 OK
+**Sync body:**
+```json
 {
-  "session_id": "uuid",
-  "session_title": "Final Exam - CS101",
-  "total_enrolled": 50,
-  "present_count": 35,
-  "absent_count": 10,
-  "late_count": 5,
-  "in_progress": true
-}
-```
-
-#### Get Session Statistics
-```
-GET /dashboard/session/<session_id>/stats
-Authorization: Bearer <access_token>
-
-Response: 200 OK
-{
-  "session_id": "uuid",
-  "session_title": "Final Exam - CS101",
-  "venue": "Hall A",
-  "status": "completed",
-  "total_enrolled": 50,
-  "present": 45,
-  "absent": 3,
-  "late": 2,
-  "attendance_rate": "90%",
-  "duration": "3 hours"
-}
-```
-
-#### Get Overall Statistics
-```
-GET /dashboard/statistics
-Authorization: Bearer <access_token>
-
-Response: 200 OK
-{
-  "total_sessions": 10,
-  "completed_sessions": 8,
-  "active_sessions": 1,
-  "upcoming_sessions": 1,
-  "total_students": 150,
-  "average_attendance_rate": "87.5%"
-}
-```
-
----
-
-### Offline Module (`/offline`)
-
-#### Sync Offline Data
-```
-POST /offline/sync
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "attendance_records": [
+  "deviceId": "Scanner-Device-001",
+  "offlineRecords": [
     {
-      "session_id": "uuid",
-      "student_id": "uuid",
+      "localId": "local-uuid-001",
+      "sessionId": "<session_uuid>",
+      "studentNumber": "BIT/COM/001/24",
       "status": "present",
-      "timestamp": "2026-05-01T09:15:00Z"
+      "method": "scan",
+      "markedAt": "2026-05-15T09:15:00Z",
+      "remarks": "Scanned at entrance"
     }
-  ],
-  "last_sync": "2026-04-30T18:00:00Z"
-}
-
-Response: 200 OK
-{
-  "synced": true,
-  "records_processed": 1,
-  "sync_timestamp": "2026-05-01T10:00:00Z"
+  ]
 }
 ```
 
@@ -649,252 +346,163 @@ Response: 200 OK
 
 ## Testing Workflows
 
-### Workflow 1: Complete Authentication & Session Setup
+### Workflow 1: Full Session Setup
 
-1. **Register a Teacher**
-   ```bash
-   curl -X POST http://localhost:3000/auth/register \
-     -H "Content-Type: application/json" \
-     -d '{
-       "first_name": "John",
-       "last_name": "Doe",
-       "email": "john@example.com",
-       "password": "teacher123",
-       "role": "teacher"
-     }'
+Follow these steps in order:
+
+1. **Register a teacher**
+   ```json
+   POST /auth/register
+   { "first_name": "Damianoh", "last_name": "Jester", "email": "dami@test.com", "password": "Pass123", "role": "teacher" }
    ```
 
-2. **Login and Get Token**
-   ```bash
-   curl -X POST http://localhost:3000/auth/login \
-     -H "Content-Type: application/json" \
-     -d '{
-       "email": "john@example.com",
-       "password": "teacher123"
-     }'
+2. **Login and copy the `access_token`**
+   ```json
+   POST /auth/login
+   { "email": "dami@test.com", "password": "Pass123" }
    ```
-   Save the `access_token` from response.
 
-3. **Create a Course**
-   ```bash
-   curl -X POST http://localhost:3000/session/course \
-     -H "Authorization: Bearer <TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "code": "CS101",
-       "name": "Introduction to Computer Science"
-     }'
+3. **Create a course** — save the returned `id`
+   ```json
+   POST /session/course
+   { "code": "CS101", "name": "Introduction to Computer Science" }
    ```
-   Save the course `id`.
 
-4. **Create a Session**
-   ```bash
-   curl -X POST http://localhost:3000/session \
-     -H "Authorization: Bearer <TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "title": "Midterm Exam",
-       "venue": "Hall A",
-       "scheduled_start": "2026-05-01T09:00:00Z",
-       "scheduled_end": "2026-05-01T12:00:00Z",
-       "course_id": "<COURSE_ID>"
-     }'
+4. **Create a session** — save the returned `id`
+   ```json
+   POST /session
+   { "title": "Final Exam", "venue": "Hall A", "scheduled_start": "2026-05-15T09:00:00Z", "scheduled_end": "2026-05-15T12:00:00Z", "course_id": "<course_id>" }
    ```
-   Save the session `id`.
 
-5. **Enroll Students**
-   ```bash
-   curl -X POST http://localhost:3000/session/<SESSION_ID>/enroll \
-     -H "Authorization: Bearer <TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "students": [
-         {"student_number": "BIT001", "full_name": "Alice"},
-         {"student_number": "BIT002", "full_name": "Bob"},
-         {"student_number": "BIT003", "full_name": "Charlie"}
-       ]
-     }'
+5. **Enroll students** — save the returned `session_student` IDs
+   ```json
+   POST /session/<session_id>/enrollments
+   {  "students": [
+    { "student_number": "BSC/COM/02/24", "full_name": "Jamu Latisha" },
+    { "student_number": "BSC/52/24", "full_name": "Kaluluma Jessica Ndense" },
+    { "student_number": "BSC/INF/09/24", "full_name": "Mike Kamanga" },
+    {"student_number": "BSC/COM/02/24}", "full_name" : "Nick Tsokalida" },
+    {"student_number": "BSC/COM/03/24}", "full_name" : "Paul Mongola" },
+    {"student_number": "BED/COM/02/24}", "full_name" : "Paul Nangantani" },
+    {"student_number": "BSC/COM/NE/02/24}", "full_name" : "Alfred Lonjezo" },
+    {"student_number": "BSC/ELE/20/24}", "full_name" : "Lisa Kanyenda" },
+    {"student_number": "BSC/INF/40/24}", "full_name" : "Patrick Solomon" },
+    {"student_number": "BSC/01/24}", "full_name" : "Christopher Chisamba" },
+    {"student_number": "BSC/COM/27/24}", "full_name" : "Mordecai Kalulu" } ]}
+   ```
+
+6. **Mark attendance**
+   ```json
+   POST /attendance/mark
+   { "session_id": "<session_id>", "session_student_id": "<session_student_id>", "status": "present", "method": "scan" }
+   ```
+
+7. **View the report**
+   ```
+   GET /attendance/report/<session_id>
    ```
 
 ---
 
-### Workflow 2: Attendance Marking & Reporting
+### Workflow 2: Offline Sync
 
-1. **Mark Individual Attendance**
-   ```bash
-   curl -X POST http://localhost:3000/attendance \
-     -H "Authorization: Bearer <TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "session_id": "<SESSION_ID>",
-       "student_id": "<STUDENT_ID>",
-       "status": "present",
-       "method": "biometric"
-     }'
+1. Download the session's student list while online:
    ```
-
-2. **Bulk Mark Attendance**
-   ```bash
-   curl -X POST http://localhost:3000/attendance/bulk \
-     -H "Authorization: Bearer <TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "session_id": "<SESSION_ID>",
-       "records": [
-         {"student_id": "<ID1>", "status": "present"},
-         {"student_id": "<ID2>", "status": "absent"},
-         {"student_id": "<ID3>", "status": "late"}
-       ]
-     }'
+   GET /session/<session_id>/students
    ```
-
-3. **Get Attendance Report**
-   ```bash
-   curl -X GET http://localhost:3000/attendance/report/<SESSION_ID> \
-     -H "Authorization: Bearer <TOKEN>"
+2. Mark attendance offline using the scanner device.
+3. Once reconnected, sync the captured records:
+   ```json
+   POST /offline/sync
+   { "deviceId": "Scanner-001", "offlineRecords": [...] }
    ```
 
 ---
 
-### Workflow 3: Dashboard Analytics
+## Running Tests
 
-1. **View Active Session Stats**
-   ```bash
-   curl -X GET http://localhost:3000/dashboard/active-session \
-     -H "Authorization: Bearer <TOKEN>"
-   ```
-
-2. **View Session-Specific Stats**
-   ```bash
-   curl -X GET http://localhost:3000/dashboard/session/<SESSION_ID>/stats \
-     -H "Authorization: Bearer <TOKEN>"
-   ```
-
-3. **View Overall Statistics**
-   ```bash
-   curl -X GET http://localhost:3000/dashboard/statistics \
-     -H "Authorization: Bearer <TOKEN>"
-   ```
-
----
-
-### Workflow 4: Offline Sync
-
-1. **Collect Offline Records Locally** (Mobile device or offline instance)
-
-2. **Sync When Connected**
-   ```bash
-   curl -X POST http://localhost:3000/offline/sync \
-     -H "Authorization: Bearer <TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "attendance_records": [
-         {
-           "session_id": "<SESSION_ID>",
-           "student_id": "<STUDENT_ID>",
-           "status": "present",
-           "timestamp": "2026-05-01T09:15:00Z"
-         }
-       ],
-       "last_sync": "2026-04-30T18:00:00Z"
-     }'
-   ```
-
----
-
-## Running Specific Module Tests
-
-### Auth Module Tests
+### All Tests
 ```bash
-npm run test -- auth.controller.spec.ts
-npm run test -- auth.service.spec.ts
+npm run test
 ```
 
-### Attendance Module Tests
+### Watch Mode (re-runs on file save)
 ```bash
-npm run test -- attendance.controller.spec.ts
+npm run test:watch
+```
+
+### Coverage Report
+```bash
+npm run test:cov
+```
+Coverage output: `coverage/index.html`
+
+### Run a Specific Module
+```bash
+npm run test -- auth.service.spec.ts
+npm run test -- session.controller.spec.ts
 npm run test -- attendance.service.spec.ts
 ```
 
-### Session Module Tests
-```bash
-npm run test -- session.controller.spec.ts
-npm run test -- session.service.spec.ts
-```
+### Test Suite Status
 
-### Dashboard Module Tests
-```bash
-npm run test -- dashboard.controller.spec.ts
-npm run test -- dashboard.service.spec.ts
-```
-
-### Offline Module Tests
-```bash
-npm run test -- offline.controller.spec.ts
-npm run test -- offline.service.spec.ts
-```
+| Module | Spec File | Status |
+|--------|-----------|--------|
+| App | `app.controller.spec.ts` | ✅ Passing |
+| Auth | `auth.controller.spec.ts` | ✅ Passing |
+| Auth | `auth.service.spec.ts` | ✅ Passing |
+| Session | `session.controller.spec.ts` | ✅ Passing |
+| Session | `session.service.spec.ts` | ✅ Passing |
+| Attendance | `attendance.controller.spec.ts` | ✅ Passing |
+| Attendance | `attendance.service.spec.ts` | ✅ Passing |
+| Dashboard | `dashboard.controller.spec.ts` | ✅ Passing |
+| Dashboard | `dashboard.service.spec.ts` | ✅ Passing |
+| Offline | `offline.controller.spec.ts` | ✅ Passing |
+| Offline | `offline.service.spec.ts` | ✅ Passing |
 
 ---
 
 ## Troubleshooting
 
-### Connection Issues
+### Oracle Connection Error
+**Error:** `ORA-12514: TNS:listener does not currently know of service`
 
-**Problem**: Cannot connect to Oracle Database
-```
-Error: ORA-12514: TNS:listener does not currently know of service requested in connect descriptor
-```
-
-**Solution**:
-1. Verify Oracle is running: `lsnrctl status`
-2. Check database is open: `ALTER PLUGGABLE DATABASE digital_attendance_pdb OPEN;`
+**Steps:**
+1. Check Oracle is running: `lsnrctl status`
+2. Open the database: `ALTER PLUGGABLE DATABASE digital_attendance_pdb OPEN;`
 3. Verify credentials in `.env`
-4. Restart listener: `lsnrctl stop` then `lsnrctl start`
+4. Restart the listener: `lsnrctl stop && lsnrctl start`
 
 ---
 
 ### Port Already in Use
+**Error:** `EADDRINUSE: address already in use :::3000`
 
-**Problem**: Port 3000 already in use
-```
-Error: listen EADDRINUSE: address already in use :::3000
-```
-
-**Solution**:
 ```bash
-# Find process using port 3000
+# Find and kill the process
 lsof -i :3000
-
-# Kill the process
 kill -9 <PID>
 
-# Or use a different port
+# Or start on a different port
 PORT=3001 npm run start:dev
 ```
 
 ---
 
-### Test Failures
+### 403 Forbidden on Protected Endpoints
+**Cause:** User account has no role assigned.
 
-**Problem**: Tests fail with database connection error
-
-**Solution**:
-1. Ensure database is running
-2. Check credentials in `.env` match database setup
-3. Run migrations if needed
-4. Clear test database: `npm run test -- --clearCache`
+**Fix:** Ensure the `roles` table is seeded (see [Database Seed Data](#database-seed-data)), then re-register the user with a `role` field in the request body.
 
 ---
 
-### JWT Authentication Issues
+### 401 Unauthorized
+**Cause:** Missing, expired, or malformed JWT token.
 
-**Problem**: 401 Unauthorized on protected endpoints
-
-**Solution**:
-1. Verify token is valid: Check expiration time
-2. Ensure token format: `Authorization: Bearer <token>`
-3. Check JWT_SECRET in `.env` matches
-4. Re-login to get a new token
+**Fix:**
+1. Re-login to get a fresh token.
+2. Ensure the `Authorization` header format is exactly: `Bearer <token>`
+3. Verify `JWT_SECRET` in `.env` has not changed since the token was issued.
 
 ---
 
@@ -904,15 +512,15 @@ PORT=3001 npm run start:dev
 |------|---------|
 | Install dependencies | `npm install` |
 | Build project | `npm run build` |
-| Start dev server | `npm run start:dev` |
-| Start production | `npm run start:prod` |
+| Start (development) | `npm run start:dev` |
+| Start (production) | `npm run start:prod` |
+| Start (debug) | `npm run start:debug` |
 | Run all tests | `npm run test` |
-| Run tests (watch) | `npm run test:watch` |
+| Watch tests | `npm run test:watch` |
 | Coverage report | `npm run test:cov` |
-| Debug mode | `npm run start:debug` |
+| E2E tests | `npm run test:e2e` |
 | Lint code | `npm run lint` |
 | Format code | `npm run format` |
-| E2E tests | `npm run test:e2e` |
 
 ---
 
@@ -921,12 +529,5 @@ PORT=3001 npm run start:dev
 - [NestJS Documentation](https://docs.nestjs.com)
 - [TypeORM Documentation](https://typeorm.io)
 - [Oracle Database Documentation](https://docs.oracle.com)
-- [JWT Authentication](https://jwt.io)
-- [Jest Testing](https://jestjs.io)
-
----
-
-
-
-
-
+- [JWT Reference](https://jwt.io)
+- [Jest Testing Framework](https://jestjs.io)
