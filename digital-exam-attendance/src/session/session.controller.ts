@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get, Patch, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Patch, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,6 +17,7 @@ import { SessionStudent } from './entities/session-students.entity';
 export class SessionController {
   constructor(private readonly sessionService: SessionService) { }
 
+  //COURSE ENDPOINTS
   @Roles('admin', 'teacher')
   @Post('course')
   async createCourse(@Body() dto: CreateCourseDto, @Request() req): Promise<Course> {
@@ -47,6 +48,7 @@ export class SessionController {
     return this.sessionService.removeCourse(id, req.user.userId);
   }
 
+  //SESSION ENDPOINTS
   @Roles('admin', 'teacher')
   @Post()
   async create(@Body() dto: CreateSessionDto, @Request() req): Promise<Session> {
@@ -63,6 +65,14 @@ export class SessionController {
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Session> {
     return await this.sessionService.getSessionById(id);
+  }
+
+  @Get()
+  async getAll(@Query('status') status?: string): Promise<Session[]> {
+    if (status) {
+      return await this.sessionService.getSessionByStatus(status);
+    }
+    return await this.sessionService.getAllSessions();
   }
 
   @Roles('admin', 'teacher', 'invigilator')
