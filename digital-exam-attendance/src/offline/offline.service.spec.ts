@@ -81,7 +81,7 @@ describe('OfflineService', () => {
         offlineRecords: [],
       };
 
-      await expect(service.syncOfflineRecords(syncDto)).rejects.toThrow(
+      await expect(service.syncOfflineRecords(syncDto, 'user-1')).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -111,7 +111,7 @@ describe('OfflineService', () => {
         student_id: 'student-1',
       });
 
-      const result = await service.syncOfflineRecords(syncDto);
+      const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
       expect(result.successCount).toBe(1);
       expect(result.failureCount).toBe(0);
@@ -136,7 +136,7 @@ describe('OfflineService', () => {
       };
 
       mockQueryRunner.manager.findOne.mockResolvedValueOnce(null);
-      const result = await service.syncOfflineRecords(syncDto);
+      const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
       expect(result.failureCount).toBe(1);
       expect(result.failures[0].reason).toContain('not found');
@@ -160,7 +160,7 @@ describe('OfflineService', () => {
 
       mockQueryRunner.manager.findOne
         .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(null);
-      const result = await service.syncOfflineRecords(syncDto);
+      const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
       expect(result.failureCount).toBe(1);
       expect(result.failures[0].reason).toContain('not registered');
@@ -187,7 +187,7 @@ describe('OfflineService', () => {
 
       mockQueryRunner.manager.findOne
         .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(mockSessionStudent)        .mockResolvedValueOnce(mockExistingRecord);
-      const result = await service.syncOfflineRecords(syncDto);
+      const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
       expect(result.failureCount).toBe(1);
       expect(result.failures[0].reason).toContain('already recorded');
@@ -230,7 +230,7 @@ describe('OfflineService', () => {
 
       mockQueryRunner.manager.create.mockReturnValue({});
 
-      const result = await service.syncOfflineRecords(syncDto);
+      const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
       expect(result.successCount).toBe(1);
       expect(result.failureCount).toBe(1);
@@ -256,7 +256,7 @@ describe('OfflineService', () => {
         ],
       };
 
-      await expect(service.syncOfflineRecords(syncDto)).rejects.toThrow();
+      await expect(service.syncOfflineRecords(syncDto, 'user-1')).rejects.toThrow();
       expect(mockQueryRunner.release).toHaveBeenCalled();
     });
   });
