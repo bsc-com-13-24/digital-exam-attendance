@@ -12,6 +12,13 @@ import { Session } from '../../session/entities/sessions.entity';
 import { User } from '../../auth/entities/users.entity';
 import { SessionStudent } from '../../session/entities/session-students.entity';
 
+export enum AttendanceStatus{
+  PRESENT = 'present',
+  LATE = 'late',
+  ABSENT = 'absent',
+  COMPLETED = 'completed',
+}
+
 @Entity('attendance_records')
 @Unique(['session_id', 'session_student_id'])
 export class AttendanceRecord {
@@ -32,8 +39,12 @@ export class AttendanceRecord {
   @Column({ name: 'session_student_id' })
   session_student_id!: string;
 
-  @Column({ length: 20, default: 'absent' })
-  status!: string;
+  @Column({ 
+    type: 'varchar2',
+    enum: AttendanceStatus,
+    default: AttendanceStatus.PRESENT,
+   })
+  status!: AttendanceStatus;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'marked_by' })
