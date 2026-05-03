@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AttendanceRecord } from './entities/attendance-records.entity';
+import { AttendanceRecord, AttendanceStatus } from './entities/attendance-records.entity';
 import { AuditLog } from './entities/audit-logs.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
@@ -24,51 +24,40 @@ export class AttendanceService {
   ) {}
 
   async markAttendance(dto: CreateAttendanceDto, userId: string): Promise<AttendanceRecord> {
-    // this checks if the student is enrolled in the session.
-    const sessionStudent = await this.sessionStudentRepository.findOne({
-      where: { id: dto.session_student_id, session_id: dto.session_id },
-    });
-    if (!sessionStudent) {
-      throw new BadRequestException('Student is not registered for this session');
-    }
+  const sessionStudent = await this.sessionStudentRepository.findOne({
+    where: { id: dto.session_student_id, session_id: dto.session_id },
+  });
+  if (!sessionStudent) throw new BadRequestException('Student is not registered for this session');
 
-    /*I have to come up with a way that marks the attendance two times, the first time the student's status
-    marked as present and the second time it will be marked as completed.*/
-    
+  const session = await this.sessionRepository.findOne({ where: { id: dto.session_id } });
+  if (!session) throw new NotFoundException('Session not found');
 
-    // this avoids marking attendance multiple times for the same student in the same session.
-    /*const existing = await this.attendanceRepository.findOne({
-      where: { session_id: dto.session_id, session_student_id: dto.session_student_id },
-    });
-    if (existing) {
-      throw new ConflictException('Attendance already marked for this student in the session');
-    }*/
+  const existing = await this.attendanceRepository.findOne({
+    where: { session_id: dto.session_id, session_student_id: dto.session_student_id },
+  });
 
-    // time check
-    const session = await this.sessionRepository.findOne({ where: { id: dto.session_id } });
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
+  const now = new Date();
 
-    const now = new Date();
-    let status = dto.status;
-    if (status === 'present' && now > session.scheduled_start) {
-      status = 'late';
-    }
-
-    const record = this.attendanceRepository.create({
-      ...dto,
-      status,
-      marked_at: now,
-    });
-
+  if (!existing) {
+    // First scan → PRESENT or LATE
+    const status = now > session.scheduled_start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
+    const record = this.attendanceRepository.create({ ...dto, status, marked_at: now });
     const saved = await this.attendanceRepository.save(record);
-
-    // audit log
     await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
-
     return saved;
   }
+
+  if (existing.status === AttendanceStatus.COMPLETED) {
+    throw new ConflictException('Student has already completed this session');
+  }
+
+  // Second scan → update to COMPLETED
+  existing.status = AttendanceStatus.COMPLETED;
+  existing.marked_at = now;
+  const saved = await this.attendanceRepository.save(existing);
+  await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
+  return saved;
+}
 
   async bulkMarkAttendance(dto: BulkMarkAttendanceDto, userId: string): Promise<AttendanceRecord[]> {
     const records: AttendanceRecord[] = [];
@@ -127,6 +116,7 @@ export class AttendanceService {
   async getAttendanceReport(sessionId: string): Promise<{
     totalEnrolled: number;
     present: number;
+    completed: number;
     absent: number;
     late: number;
   }> {
@@ -144,11 +134,12 @@ export class AttendanceService {
       where: { session_id: sessionId },
     });
 
-    const present = records.filter(r => r.status === 'present').length;
-    const absent = records.filter(r => r.status === 'absent').length;
-    const late = records.filter(r => r.status === 'late').length;
+    const present = records.filter(r => r.status === AttendanceStatus.PRESENT).length;
+    const completed = records.filter(r => r.status === AttendanceStatus.COMPLETED).length;
+    const absent = records.filter(r => r.status === AttendanceStatus.ABSENT).length;
+    const late = records.filter(r => r.status === AttendanceStatus.LATE).length;
 
-    return { totalEnrolled, present, absent, late };
+    return { totalEnrolled, present, completed, absent, late };
   }
 
   async searchStudentsForManualMark(sessionId: string, search: string): Promise<SessionStudent[]> {

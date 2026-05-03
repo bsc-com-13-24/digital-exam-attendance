@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { AttendanceStatus } from '../entities/attendance-records.entity';
 
 export class AttendanceQueryDto {
   @IsOptional()
@@ -11,7 +12,7 @@ export class AttendanceQueryDto {
 
   @IsOptional()
   @IsString()
-  status?: string;
+  status?: AttendanceStatus;
 
   @IsOptional()
   @IsString()

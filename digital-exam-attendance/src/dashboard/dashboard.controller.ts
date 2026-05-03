@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
+/*import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -41,4 +41,5 @@ export class DashboardController {
   async getOverallStatistics(@Request() req) {
     return this.dashboardService.getOverallStatistics(req.user.userId);
   }
-}
+}*/
+

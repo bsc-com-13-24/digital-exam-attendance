@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsUUID, IsEnum } from 'class-validator';
+import { AttendanceStatus } from '../entities/attendance-records.entity';
 
 export class CreateAttendanceDto {
     @IsUUID()
@@ -9,9 +10,9 @@ export class CreateAttendanceDto {
     @IsNotEmpty()
     session_student_id!: string;
 
-    @IsString()
+    @IsEnum(AttendanceStatus)
     @IsNotEmpty()
-    status!: string;
+    status!: AttendanceStatus;
 
     @IsString()
     @IsNotEmpty()
