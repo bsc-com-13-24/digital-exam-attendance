@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, LessThanOrEqual, MoreThan } from "typeorm";
+import { Repository, LessThanOrEqual, MoreThan, In } from "typeorm";
 import { Session } from './entities/sessions.entity';
 
 @Injectable()
@@ -15,7 +15,16 @@ export class SessionSchedulerService {
     async updateSessionStatuses() {
         const now = new Date();
 
-        //from upcoming to active
+        // 1. Move to 'expired' if the session has ended (handles both upcoming and active)
+        await this.sessionRepository.update(
+            {
+                status: In(['upcoming', 'active']),
+                scheduled_end: LessThanOrEqual(now),
+            },
+            { status: 'expired' },
+        );
+
+        // 2. Move 'upcoming' to 'active' if we are within the session window
         await this.sessionRepository.update(
             {
                 status: 'upcoming',
@@ -23,15 +32,6 @@ export class SessionSchedulerService {
                 scheduled_end: MoreThan(now),
             },
             { status: 'active' },
-        );
-
-        //from active to expired
-        await this.sessionRepository.update(
-            {
-                status: 'active',
-                scheduled_end: LessThanOrEqual(now),
-            },
-            { status: 'expired' },
         );
     }
 }
