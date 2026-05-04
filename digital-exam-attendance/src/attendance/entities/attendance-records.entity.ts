@@ -42,7 +42,7 @@ export class AttendanceRecord {
   @Column({ 
     type: 'varchar2',
     enum: AttendanceStatus,
-    default: AttendanceStatus.PRESENT,
+    default: AttendanceStatus.ABSENT,
    })
   status!: AttendanceStatus;
 
