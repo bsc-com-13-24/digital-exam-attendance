@@ -10,7 +10,7 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) { }
 
   @Roles('admin', 'teacher')
-  @Get('session/:sessionId')
+  @Get(':sessionId')
   async getLiveSessionDashboard(
     @Param('sessionId') sessionId: string,
   ) {
@@ -35,7 +35,7 @@ export class DashboardController {
   }
 
   @Roles('admin')
-  @Get('statistics/overall')
+  @Get('stats')
   async getOverallStatistics() {
     const [activeSessions, upcomingSessions, expiredSessions] = await Promise.all([
       this.dashboardService.getActiveSessions(),
