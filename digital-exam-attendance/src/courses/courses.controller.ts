@@ -27,7 +27,7 @@ export class CoursesController {
   //  COURSE ENDPOINTS  -> /course/
  
    @Roles('admin', 'teacher')
-   @Post('course')
+   @Post()
    async createCourse(
      @Body() dto: CreateCourseDto,
      @Request() req,
@@ -36,13 +36,13 @@ export class CoursesController {
    }
  
    @Roles('admin', 'teacher', 'invigilator')
-   @Get('course')
+   @Get()
    async getAllCourses(): Promise<Course[]> {
      return await this.coursesService.getAllCourses();
    }
  
    @Roles('admin', 'teacher', 'invigilator')
-   @Get('course/:courseId')
+   @Get(':courseId')
    async getCourseById(
      @Param('courseId', ParseUUIDPipe) courseId: string,
    ): Promise<Course> {
@@ -50,7 +50,7 @@ export class CoursesController {
    }
  
    @Roles('admin', 'teacher')
-   @Patch('course/:courseId')
+   @Patch(':courseId')
    async updateCourse(
      @Param('courseId', ParseUUIDPipe) courseId: string,
      @Body() dto: UpdateCourseDto,
@@ -60,7 +60,7 @@ export class CoursesController {
    }
   
    @Roles('admin', 'teacher')
-   @Delete('course/:courseId')
+   @Delete(':courseId')
    async deleteCourse(
      @Param('courseId', ParseUUIDPipe) courseId: string,
      @Request() req,
