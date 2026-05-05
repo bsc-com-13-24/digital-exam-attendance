@@ -19,6 +19,7 @@ import { AuditLog } from './attendance/entities/audit-logs.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RoomsModule } from './rooms/rooms.module';
 import { Room } from './rooms/entities/rooms.entity';
+import { CoursesModule } from './courses/courses.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { Room } from './rooms/entities/rooms.entity';
     OfflineModule,
     DashboardModule,
     RoomsModule,
+    CoursesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
