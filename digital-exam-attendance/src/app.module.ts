@@ -17,6 +17,8 @@ import { SessionStudent } from './session/entities/session-students.entity';
 import { AttendanceRecord } from './attendance/entities/attendance-records.entity';
 import { AuditLog } from './attendance/entities/audit-logs.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RoomsModule } from './rooms/rooms.module';
+import { Room } from './rooms/entities/rooms.entity';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { ScheduleModule } from '@nestjs/schedule';
           SessionStudent,
           AttendanceRecord,
           AuditLog,
+          Room,
         ],
         logging: true,
       }),
@@ -51,6 +54,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AttendanceModule,
     OfflineModule,
     DashboardModule,
+    RoomsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

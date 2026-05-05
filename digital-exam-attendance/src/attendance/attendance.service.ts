@@ -45,7 +45,8 @@ export class AttendanceService {
       ...dto, 
       session_student_id: sessionStudent.id,
       status, 
-      marked_at: now 
+      marked_at: now,
+      marked_by: userId
     });
     const saved = await this.attendanceRepository.save(record);
     await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
