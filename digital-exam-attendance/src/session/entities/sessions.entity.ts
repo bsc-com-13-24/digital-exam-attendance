@@ -11,6 +11,7 @@ import { Course } from './courses.entity';
 import { SessionStudent } from './session-students.entity';
 import { AttendanceRecord } from '../../attendance/entities/attendance-records.entity';
 import { User } from '../../auth/entities/users.entity';
+import { Room } from '../../rooms/entities/rooms.entity';
 
 @Entity('sessions')
 export class Session {
@@ -38,6 +39,13 @@ export class Session {
 
   @Column({ name: 'course_id' })
   course_id!: string;
+
+  @ManyToOne(() => Room, (room) => room.sessions, { nullable: true })
+  @JoinColumn({ name: 'room_id' })
+  room!: Room;
+
+  @Column({ name: 'room_id', nullable: true })
+  room_id!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })
