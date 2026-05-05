@@ -24,4 +24,8 @@ export class CreateSessionDto {
   @IsUUID()
   @IsOptional()
   created_by?: string;
+
+  @IsUUID()
+  @IsOptional()
+  room_id?: string;
 }
