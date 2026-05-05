@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { resolve4, resolveMx } from 'dns/promises';
 import { User } from './entities/users.entity';
 import { UserRole } from './entities/user-roles.entity';
 import { Role } from './entities/roles.entity';
@@ -22,6 +23,13 @@ export class AuthService {
   ) {}
 
   async createUser(dto: CreateUserDto): Promise<User> {
+    await this.verifyEmailDomain(dto.email);
+
+    const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
+    if (existingUser) {
+      throw new BadRequestException('Email is already registered');
+    }
+
     // hash password
     const password_hash = await bcrypt.hash(dto.password, 10);
 
@@ -30,10 +38,10 @@ export class AuthService {
       first_name: dto.first_name,
       last_name: dto.last_name,
       email: dto.email,
-      password_hash,           
+      password_hash,
     });
 
-    const savedUser = await this.userRepository.save(user); 
+    const savedUser = await this.userRepository.save(user);
 
     // set role
     if (dto.role) {
@@ -48,6 +56,33 @@ export class AuthService {
     }
 
     return this.getUserWithRoles(savedUser.id);
+  }
+
+  private async verifyEmailDomain(email: string): Promise<void> {
+    const domain = email.split('@')[1];
+    if (!domain) {
+      throw new BadRequestException('Email is not valid');
+    }
+
+    try {
+      const mxRecords = await resolveMx(domain);
+      if (mxRecords && mxRecords.length > 0) {
+        return;
+      }
+    } catch {
+      // ignore and try fallback
+    }
+
+    try {
+      const aRecords = await resolve4(domain);
+      if (aRecords && aRecords.length > 0) {
+        return;
+      }
+    } catch {
+      // ignore fallback failure
+    }
+
+    throw new BadRequestException('Email domain is not valid or cannot be verified');
   }
 
   async getUserById(id: string): Promise<User> {
