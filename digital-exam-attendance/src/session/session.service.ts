@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +15,7 @@ import { AddStudentDto } from './dto/add-student.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { EnrollStudentsDto } from './dto/enroll-students.dto';
+import { RoomsService } from '../rooms/rooms.service';
 
 @Injectable()
 export class SessionService {
@@ -26,9 +28,21 @@ export class SessionService {
 
     @InjectRepository(SessionStudent)
     private readonly sessionStudentRepository: Repository<SessionStudent>,
+
+    private readonly roomsService: RoomsService,
   ) {}
 
   async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
+    // Validate room if provided
+    if (dto.room_id) {
+      const room = await this.roomsService.getRoomById(dto.room_id);
+      if (!room.is_active) {
+        throw new BadRequestException(
+          `Room "${room.name}" is not currently active`,
+        );
+      }
+    }
+
     const session = this.sessionRepository.create({
       ...dto,
       created_by: userId,
@@ -36,20 +50,25 @@ export class SessionService {
     return await this.sessionRepository.save(session);
   }
 
+
   async getAllSessions(status?: string): Promise<Session[]> {
     if (status) {
       return await this.sessionRepository.find({
         where: { status },
-        relations: ['course'],
+        relations: ['course', 'room'],
         order: { scheduled_start: 'ASC' },
       });
     }
-    return await this.sessionRepository.find({ order: { scheduled_start: 'ASC' } });
+    return await this.sessionRepository.find({
+      relations: ['course', 'room'],
+      order: { scheduled_start: 'ASC' },
+    });
   }
 
   async getSessionById(id: string): Promise<Session> {
     const session = await this.sessionRepository.findOne({
       where: { id },
+      relations: ['course', 'room'],
     });
     if (!session) {
       throw new NotFoundException(`Session with ID ${id} not found`);
@@ -60,7 +79,7 @@ export class SessionService {
   async getSessionByStatus(status: string): Promise<Session[]> {
     return await this.sessionRepository.find({
       where: { status },
-      relations: ['course'],
+      relations: ['course', 'room'],
       order: { scheduled_start: 'ASC' },
     });
   }

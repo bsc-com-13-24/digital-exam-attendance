@@ -41,7 +41,7 @@ export class AttendanceService {
   if (!existing) {
     // First scan → PRESENT or LATE
     const status = now > session.scheduled_start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
-    const record = this.attendanceRepository.create({ ...dto, status, marked_at: now });
+    const record = this.attendanceRepository.create({ ...dto, status, marked_at: now, marked_by: userId});
     const saved = await this.attendanceRepository.save(record);
     await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
     return saved;
