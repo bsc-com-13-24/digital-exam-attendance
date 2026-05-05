@@ -81,18 +81,15 @@ export class OfflineService {
     }
 
     // student registration check
-    // Note: The DTO has studentId but the code was using studentNumber. 
-    // Checking the entity and DTO to see which one is correct.
-    // In sync-offline.dto.ts it is 'studentId'.
     const sessionStudent = await queryRunner.manager.findOne(SessionStudent, {
       where: {
         session_id: record.sessionId,
-        id: record.studentId, 
+        student_number: record.studentNumber, 
       },
     });
     if (!sessionStudent) {
       throw new BadRequestException(
-        `Student ${record.studentId} is not registered for session ${record.sessionId}`,
+        `Student ${record.studentNumber} is not registered for session ${record.sessionId}`,
       );
     }
 
