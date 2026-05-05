@@ -6,9 +6,9 @@ export class CreateAttendanceDto {
     @IsNotEmpty()
     session_id!: string;
 
-    @IsUUID()
+    @IsString()
     @IsNotEmpty()
-    session_student_id!: string;
+    student_number!: string;
 
     @IsEnum(AttendanceStatus)
     @IsNotEmpty()

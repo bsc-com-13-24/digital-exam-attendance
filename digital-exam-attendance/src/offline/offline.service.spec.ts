@@ -6,7 +6,8 @@ import { AttendanceRecord } from '../attendance/entities/attendance-records.enti
 import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { SyncOfflineDto, OfflineAttendanceRecordDto, AttendanceStatus, ScanMethod } from './dto/sync-offline.dto';
+import { SyncOfflineDto, OfflineAttendanceRecordDto, ScanMethod } from './dto/sync-offline.dto';
+import { AttendanceStatus } from '../attendance/entities/attendance-records.entity';
 import { DataSource } from 'typeorm';
 
 describe('OfflineService', () => {
