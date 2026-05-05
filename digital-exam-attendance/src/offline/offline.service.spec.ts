@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { OfflineService } from './offline.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -93,7 +93,7 @@ describe('OfflineService', () => {
       const mockRecord: OfflineAttendanceRecordDto = {
         localId: 'local-1',
         sessionId: 'session-1',
-        studentId: 'student-1',
+        studentNumber: 'student-1',
         status: AttendanceStatus.PRESENT,
         method: ScanMethod.SCAN,
         markedAt: '2024-04-28T10:00:00Z',
@@ -125,7 +125,7 @@ describe('OfflineService', () => {
       const mockRecord: OfflineAttendanceRecordDto = {
         localId: 'local-1',
         sessionId: 'session-1',
-        studentId: 'student-1',
+        studentNumber: 'student-1',
         status: AttendanceStatus.PRESENT,
         method: ScanMethod.SCAN,
         markedAt: '2024-04-28T10:00:00Z',
@@ -148,7 +148,7 @@ describe('OfflineService', () => {
       const mockRecord: OfflineAttendanceRecordDto = {
         localId: 'local-1',
         sessionId: 'session-1',
-        studentId: 'student-1',
+        studentNumber: 'student-1',
         status: AttendanceStatus.PRESENT,
         method: ScanMethod.SCAN,
         markedAt: '2024-04-28T10:00:00Z',
@@ -175,7 +175,7 @@ describe('OfflineService', () => {
       const mockRecord: OfflineAttendanceRecordDto = {
         localId: 'local-1',
         sessionId: 'session-1',
-        studentId: 'student-1',
+        studentNumber: 'student-1',
         status: AttendanceStatus.PRESENT,
         method: ScanMethod.SCAN,
         markedAt: '2024-04-28T10:00:00Z',
@@ -202,7 +202,7 @@ describe('OfflineService', () => {
         {
           localId: 'local-1',
           sessionId: 'session-1',
-          studentId: 'student-1',
+          studentNumber: 'student-1',
           status: AttendanceStatus.PRESENT,
           method: ScanMethod.SCAN,
           markedAt: '2024-04-28T10:00:00Z',
@@ -210,7 +210,7 @@ describe('OfflineService', () => {
         {
           localId: 'local-2',
           sessionId: 'session-1',
-          studentId: 'student-2',
+          studentNumber: 'student-2',
           status: AttendanceStatus.ABSENT,
           method: ScanMethod.MANUAL,
           markedAt: '2024-04-28T10:05:00Z',
@@ -249,7 +249,7 @@ describe('OfflineService', () => {
           {
             localId: 'local-1',
             sessionId: 'session-1',
-            studentId: 'student-1',
+            studentNumber: 'student-1',
             status: AttendanceStatus.PRESENT,
             method: ScanMethod.SCAN,
             markedAt: '2024-04-28T10:00:00Z',
@@ -262,52 +262,4 @@ describe('OfflineService', () => {
     });
   });
 });
-=======
-import { Test, TestingModule } from '@nestjs/testing';
-import { OfflineService } from './offline.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
-import { SessionStudent } from '../session/entities/session-students.entity';
-import { Session } from '../session/entities/sessions.entity';
 
-const mockRepository = () => ({
-  findOne: jest.fn(),
-  create: jest.fn(),
-  save: jest.fn(),
-  find: jest.fn(),
-});
-
-const mockDataSource = {
-  createQueryRunner: jest.fn(() => ({
-    connect: jest.fn(),
-    startTransaction: jest.fn(),
-    commitTransaction: jest.fn(),
-    rollbackTransaction: jest.fn(),
-    release: jest.fn(),
-    manager: { save: jest.fn() },
-  })),
-};
-
-describe('OfflineService', () => {
-  let service: OfflineService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        OfflineService,
-        { provide: getRepositoryToken(AttendanceRecord), useFactory: mockRepository },
-        { provide: getRepositoryToken(SessionStudent), useFactory: mockRepository },
-        { provide: getRepositoryToken(Session), useFactory: mockRepository },
-        { provide: DataSource, useValue: mockDataSource },
-      ],
-    }).compile();
-
-    service = module.get<OfflineService>(OfflineService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
->>>>>>> 2fea5112574b33bef03b28f7cd17b1c6c6ecc27b

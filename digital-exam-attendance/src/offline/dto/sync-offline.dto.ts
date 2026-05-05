@@ -9,12 +9,7 @@ import {
   IsISO8601,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export enum AttendanceStatus {
-  PRESENT = 'present',
-  ABSENT = 'absent',
-  LATE = 'late',
-}
+import { AttendanceStatus } from '../../attendance/entities/attendance-records.entity';
 
 export enum ScanMethod {
   SCAN = 'scan',
@@ -39,9 +34,9 @@ export class OfflineAttendanceRecordDto {
   @IsNotEmpty()
   sessionId!: string; // Which exam session this record belongs to
 
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
-  studentId!: string; // Which student attended
+  studentNumber!: string; // Which student attended
 
   @IsEnum(AttendanceStatus)
   @IsNotEmpty()
