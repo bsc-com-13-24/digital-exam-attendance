@@ -14,12 +14,9 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { SessionService } from './session.service';
 import { Session } from './entities/sessions.entity';
-import { Course } from './entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
 import { EnrollStudentsDto } from './dto/enroll-students.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -30,62 +27,10 @@ import { RolesGuard } from '../auth/guards/roles.guard';
   Everything here requires a valid JWT token. Role-based guards
   then further restrict which users can do what.
  */
-@Controller('session')
+@Controller('sessions')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class SessionController {
   constructor(private readonly sessionService: SessionService) { }
-
-  //  COURSE ENDPOINTS  -> /session/course
-
-  @Roles('admin', 'teacher')
-  @Post('course')
-  async createCourse(
-    @Body() dto: CreateCourseDto,
-    @Request() req,
-  ): Promise<Course> {
-    return await this.sessionService.createCourse(dto, req.user.userId);
-  }
-
-
-
-  @Roles('admin', 'teacher', 'invigilator')
-  @Get('course')
-  async getAllCourses(): Promise<Course[]> {
-    return await this.sessionService.getAllCourses();
-  }
-
-
-
-  @Roles('admin', 'teacher', 'invigilator')
-  @Get('course/:courseId')
-  async getCourseById(
-    @Param('courseId', ParseUUIDPipe) courseId: string,
-  ): Promise<Course> {
-    return await this.sessionService.getCourseById(courseId);
-  }
-
-
-
-  @Roles('admin', 'teacher')
-  @Patch('course/:courseId')
-  async updateCourse(
-    @Param('courseId', ParseUUIDPipe) courseId: string,
-    @Body() dto: UpdateCourseDto,
-    @Request() req,
-  ): Promise<Course> {
-    return await this.sessionService.updateCourse(courseId, dto, req.user.userId);
-  }
-
-
-  @Roles('admin', 'teacher')
-  @Delete('course/:courseId')
-  async deleteCourse(
-    @Param('courseId', ParseUUIDPipe) courseId: string,
-    @Request() req,
-  ): Promise<{ message: string }> {
-    return await this.sessionService.deleteCourse(courseId, req.user.userId);
-  }
-
 
   //  SESSION ENDPOINTS  ->  /session
 

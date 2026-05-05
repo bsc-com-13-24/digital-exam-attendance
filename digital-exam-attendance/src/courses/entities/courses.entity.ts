@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
-import { Session } from './sessions.entity';
+import { Session } from '../../session/entities/sessions.entity';
 import { User } from '../../auth/entities/users.entity';
 
 @Entity('courses')

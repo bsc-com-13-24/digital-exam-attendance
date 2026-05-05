@@ -33,7 +33,7 @@ export class AttendanceService {
   if (!session) throw new NotFoundException('Session not found');
 
   const existing = await this.attendanceRepository.findOne({
-    where: { session_id: dto.session_id, session_student_id: sessionStudent.id },
+    where: { session_id: dto.session_id, session_student_id: sessionStudent.student_number },
   });
 
   const now = new Date();
@@ -43,7 +43,7 @@ export class AttendanceService {
     const status = now > session.scheduled_start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
     const record = this.attendanceRepository.create({ 
       ...dto, 
-      session_student_id: sessionStudent.id,
+      session_student_id: sessionStudent.student_number,
       status, 
       marked_at: now,
       marked_by: userId
