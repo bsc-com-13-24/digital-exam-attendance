@@ -11,7 +11,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { User } from './auth/entities/users.entity';
 import { Role } from './auth/entities/roles.entity';
 import { UserRole } from './auth/entities/user-roles.entity';
-import { Course } from './session/entities/courses.entity';
+import { Course } from './courses/entities/courses.entity';
 import { Session } from './session/entities/sessions.entity';
 import { SessionStudent } from './session/entities/session-students.entity';
 import { AttendanceRecord } from './attendance/entities/attendance-records.entity';

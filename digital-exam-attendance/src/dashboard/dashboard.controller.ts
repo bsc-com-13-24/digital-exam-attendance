@@ -4,7 +4,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { DashboardService } from './dashboard.service';
 
-@Controller('dashboard')
+@Controller('reports')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) { }
@@ -14,18 +14,23 @@ export class DashboardController {
   async getLiveSessionDashboard(
     @Param('sessionId') sessionId: string,
   ) {
-    const [registeredStudents, actualAttendees, stats] = await Promise.all([
-      this.dashboardService.countRegisteredStudents(sessionId),
-      this.dashboardService.countActualAttendees(sessionId),
-      this.dashboardService.getSessionAttendanceStats(sessionId)
-    ]);
+    const report = await this.dashboardService.getAttendanceReport(sessionId);
+
+    const actualAttendees = report.present + report.late;
 
     return {
       sessionId,
-      registeredStudents,
+      registeredStudents: report.totalEnrolled,
       actualAttendees,
-      attendanceRate: registeredStudents > 0 ? (actualAttendees / registeredStudents) * 100 : 0,
-      stats
+      attendanceRate: report.totalEnrolled > 0
+        ? (actualAttendees / report.totalEnrolled) * 100
+        : 0,
+      stats: {
+        present: report.present,
+        absent: report.absent,
+        late: report.late,
+        completed: report.completed
+      }
     };
   }
 

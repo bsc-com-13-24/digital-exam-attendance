@@ -50,14 +50,36 @@ export class DashboardService {
         });
     }
 
-    async getSessionAttendanceStats(sessionId: string) {
-        return await this.attendanceRepository
-            .createQueryBuilder('record')
-            .select('record.status', 'status')
-            .addSelect('COUNT(*)', 'count')
-            .where('record.session_id = :sessionId', { sessionId })
-            .groupBy('record.status')
-            .getRawMany();
-    }
+   async getAttendanceReport(sessionId: string) {
+  const [totalEnrolled, stats] = await Promise.all([
+    this.sessionRepository
+      .createQueryBuilder('session')
+      .leftJoin('session.students', 'student')
+      .where('session.id = :sessionId', { sessionId })
+      .getCount(),
+  
+    this.attendanceRepository
+      .createQueryBuilder('record')
+      .select('record.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .where('record.session_id = :sessionId', { sessionId })
+      .groupBy('record.status')
+      .getRawMany()
+  ]);
+
+  return {
+    totalEnrolled,
+    present: this.findCount(stats, 'present'),
+    absent: this.findCount(stats, 'absent'),
+    late: this.findCount(stats, 'late'),
+    completed: this.findCount(stats, 'completed'),
+  };
+}
+
+
+private findCount(stats: any[], status: string): number {
+  const row = stats.find(s => s.status === status);
+  return row ? parseInt(row.count) : 0;
+}
 
 }
