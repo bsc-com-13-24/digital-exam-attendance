@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SessionService } from './session.service';
 import { SessionController } from './session.controller';
 import { Session } from './entities/sessions.entity';
-import { Course } from './entities/courses.entity';
+import { Course } from '../courses/entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
 import { AuthModule } from '../auth/auth.module';
 import { RolesGuard } from '../auth/guards/roles.guard';

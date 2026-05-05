@@ -44,17 +44,6 @@ export class AttendanceController {
   }
 
   @Roles('admin', 'teacher', 'invigilator')
-  @Get('report/:sessionId')
-  async getAttendanceReport(@Param('sessionId') sessionId: string): Promise<{
-    totalEnrolled: number;
-    present: number;
-    absent: number;
-    late: number;
-  }> {
-    return this.attendanceService.getAttendanceReport(sessionId);
-  }
-
-  @Roles('admin', 'teacher', 'invigilator')
   @Get('manual-search/:sessionId')
   async searchStudentsForManualMark(
     @Param('sessionId') sessionId: string,

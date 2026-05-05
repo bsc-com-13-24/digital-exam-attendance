@@ -119,34 +119,6 @@ export class AttendanceService {
     return qb.getMany();
   }
 
-  async getAttendanceReport(sessionId: string): Promise<{
-    totalEnrolled: number;
-    present: number;
-    completed: number;
-    absent: number;
-    late: number;
-  }> {
-    const session = await this.sessionRepository.findOne({
-      where: { id: sessionId },
-      relations: ['students'],
-    });
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
-
-    const totalEnrolled = session.students.length;
-
-    const records = await this.attendanceRepository.find({
-      where: { session_id: sessionId },
-    });
-
-    const present = records.filter(r => r.status === AttendanceStatus.PRESENT).length;
-    const completed = records.filter(r => r.status === AttendanceStatus.COMPLETED).length;
-    const absent = records.filter(r => r.status === AttendanceStatus.ABSENT).length;
-    const late = records.filter(r => r.status === AttendanceStatus.LATE).length;
-
-    return { totalEnrolled, present, completed, absent, late };
-  }
 
   async searchStudentsForManualMark(sessionId: string, search: string): Promise<SessionStudent[]> {
     const upperSearch = `%${search.toUpperCase()}%`;

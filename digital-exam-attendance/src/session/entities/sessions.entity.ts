@@ -7,7 +7,7 @@ import {
   OneToMany,
   CreateDateColumn,
 } from 'typeorm';
-import { Course } from './courses.entity';
+import { Course } from '../../courses/entities/courses.entity';
 import { SessionStudent } from './session-students.entity';
 import { AttendanceRecord } from '../../attendance/entities/attendance-records.entity';
 import { User } from '../../auth/entities/users.entity';
