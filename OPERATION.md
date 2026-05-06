@@ -228,15 +228,15 @@ Authorization: Bearer <access_token>
 
 ---
 
-### Courses — `/session/course`
+### Courses — `/courses`
 
 | Method | Endpoint | Role Required | Description |
 |--------|----------|---------------|-------------|
-| `POST` | `/session/course` | Admin, Teacher | Create a new course |
-| `GET` | `/session/course` | All | List all courses |
-| `GET` | `/session/course/:id` | All | Get a course by ID |
-| `PATCH` | `/session/course/:id` | Admin, Teacher (creator only) | Update a course |
-| `DELETE` | `/session/course/:id` | Admin, Teacher (creator only) | Delete a course |
+| `POST` | `/courses` | Admin, Teacher | Create a new course |
+| `GET` | `/courses` | All | List all courses |
+| `GET` | `/courses/:id` | All | Get a course by ID |
+| `PATCH` | `/courses/:id` | Admin, Teacher | Update a course |
+| `DELETE` | `/courses/:id` | Admin, Teacher | Delete a course |
 
 **Create Course body:**
 ```json
@@ -248,32 +248,40 @@ Authorization: Bearer <access_token>
 
 ---
 
-### Sessions — `/session`
+### Rooms — `/rooms`
 
 | Method | Endpoint | Role Required | Description |
 |--------|----------|---------------|-------------|
-| `POST` | `/session` | Admin, Teacher | Create an exam session |
-| `GET` | `/session` | All | List all sessions |
-| `GET` | `/session?status=active` | All | Filter sessions by status |
-| `GET` | `/session/:id` | All | Get a session by ID |
-| `PATCH` | `/session/:id` | Admin, Teacher (creator only) | Update a session |
-| `DELETE` | `/session/:id` | Admin, Teacher (creator only) | Delete a session |
-| `POST` | `/session/:id/enrollments` | Admin, Teacher | Enroll students into session |
-| `GET` | `/session/:id/students` | All | List enrolled students |
+| `POST` | `/rooms` | Admin | Create a new room |
+| `GET` | `/rooms` | All | List all rooms |
+| `GET` | `/rooms/:id` | All | Get a room by ID |
+| `GET` | `/rooms/code/:roomCode` | All | Get room by its code |
+| `GET` | `/rooms/:id/sessions` | All | Get sessions assigned to this room |
+| `PATCH` | `/rooms/:id` | Admin | Update a room |
+| `DELETE` | `/rooms/:id` | Admin | Delete a room |
 
-**Session statuses:** `upcoming` → `active` → `expired` _(auto-managed by the scheduler)_
-
-**Create Session body:**
+**Create Room body:**
 ```json
 {
-  "title": "Final Exam — CS101",
-  "venue": "Hall A",
-  "scheduled_start": "2026-05-15T09:00:00Z",
-  "scheduled_end": "2026-05-15T12:00:00Z",
-  "course_id": "<course_uuid>"
+  "room_code": "HL-A",
+  "name": "Great Hall A",
+  "building": "Main Building",
+  "capacity": 500
 }
 ```
 
+---
+
+### Sessions — `/sessions`
++  "title": "Final Exam — CS101",
++  "venue": "Hall A",
++  "scheduled_start": "2026-05-15T09:00:00Z",
++  "scheduled_end": "2026-05-15T12:00:00Z",
++  "course_id": "<course_uuid>",
++  "room_id": "<room_uuid>"
++}
++```
++
 **Enroll Students body:**
 ```json
 {
