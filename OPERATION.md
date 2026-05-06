@@ -12,10 +12,15 @@
 4. [Running the Application](#running-the-application)
 5. [Database Seed Data](#database-seed-data)
 6. [API Reference](#api-reference)
-7. [Testing Workflows](#testing-workflows)
-8. [Running Tests](#running-tests)
-9. [Troubleshooting](#troubleshooting)
-10. [Quick Command Reference](#quick-command-reference)
+7. [Rooms — `/rooms`](#rooms---rooms)
+8. [Sessions — `/sessions`](#sessions---sessions)
+9. [Attendance — `/attendance`](#attendance---attendance)
+10. [Reports — `/reports`](#reports---reports)
+11. [Offline Sync — `/offline`](#offline-sync---offline)
+12. [Testing Workflows](#testing-workflows)
+13. [Running Tests](#running-tests)
+14. [Troubleshooting](#troubleshooting)
+15. [Quick Command Reference](#quick-command-reference)
 
 ---
 
@@ -143,8 +148,9 @@ Application URL: `http://localhost:3000/api/v1`
 
 ## Database Seed Data
 
-Before registering users, the `roles` table must be populated. Run the following SQL in Oracle SQL Developer or SQL*Plus:
+Before registering users, the `roles` table must be populated. To use the Rooms module, you should also add some initial data. Run the following SQL:
 
+### Seed Roles
 ```sql
 INSERT INTO "roles" ("id", "name", "display_name")
   VALUES (SYS_GUID(), 'admin', 'Administrator');
@@ -154,6 +160,14 @@ INSERT INTO "roles" ("id", "name", "display_name")
 
 INSERT INTO "roles" ("id", "name", "display_name")
   VALUES (SYS_GUID(), 'invigilator', 'Invigilator');
+
+COMMIT;
+```
+
+### Seed Rooms (Optional)
+```sql
+INSERT INTO "rooms" ("id", "room_code", "name", "building", "capacity", "is_active", "created_by")
+  VALUES (SYS_GUID(), 'HL-A', 'Great Hall A', 'Main Building', 500, 1, '<admin_user_id>');
 
 COMMIT;
 ```
