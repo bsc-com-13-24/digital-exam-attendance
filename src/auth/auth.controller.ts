@@ -1,9 +1,10 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 
@@ -14,16 +15,16 @@ export class AuthController {
 
   // public register
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiOperation({ summary: 'Register a new user and send verification email' })
+  @ApiResponse({ status: 201, description: 'User registered successfully, verification email sent' })
+  @ApiResponse({ status: 400, description: 'Bad request - invalid email or user already exists' })
   register(@Body() dto: CreateUserDto) {
     return this.authService.createUser(dto);
   }
 
   // public login
   @Post('login')
-  @ApiOperation({ summary: 'Login user and get JWT token' })
+  @ApiOperation({ summary: 'Login user and get JWT token (requires verified email)' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -44,9 +45,40 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
   login(@Body() body: { email: string; password: string }) {
     return this.authService.login(body.email, body.password);
+  }
+
+  // verify email
+  @Get('verify-email')
+  @ApiOperation({ summary: 'Verify user email using verification token' })
+  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired verification token' })
+  verifyEmail(@Query('token') token: string) {
+    if (!token) {
+      throw new Error('Verification token is required');
+    }
+    return this.authService.verifyEmail(token);
+  }
+
+  // resend verification email
+  @Post('resend-verification-email')
+  @ApiOperation({ summary: 'Resend verification email to user' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'user@example.com' },
+      },
+      required: ['email'],
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Verification email resent' })
+  @ApiResponse({ status: 400, description: 'Email already verified or bad request' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  resendVerificationEmail(@Body() body: { email: string }) {
+    return this.authService.resendVerificationEmail(body.email);
   }
 
   // get user profile
