@@ -2,36 +2,28 @@ import { IsString, IsNotEmpty, IsUUID, IsDateString, IsOptional } from 'class-va
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSessionDto {
-  @ApiProperty({ example: 'Session 1' })
+  @ApiProperty({ example: 'Mid-term Exam Session 1', description: 'Title of the exam session' })
   @IsString()
   @IsNotEmpty()
   title!: string;
 
-  @ApiProperty({ example: 'course-id-123' })
-  @IsUUID()
+  @ApiProperty({ example: 'COM211', description: 'The unique course code (e.g. COM211)' })
+  @IsString()
   @IsNotEmpty()
-  course_id!: string;
+  course_code!: string;
 
-  @ApiProperty({ description: 'The room where the session will be held' })
+  @ApiProperty({ description: 'The room code or name where the session will be held', example: 'A101' })
   @IsString()
   @IsNotEmpty()
   venue!: string;
 
-  @ApiProperty({ description: 'The scheduled start time of the session', example: 'scheduled-start-123' })
+  @ApiProperty({ description: 'The scheduled start time of the session', example: '2023-10-25T09:00:00Z' })
   @IsDateString()
   @IsNotEmpty()
   scheduled_start!: string;
 
-  @ApiProperty({ description: 'The scheduled end time of the session', example: 'scheduled-end-123' })
+  @ApiProperty({ description: 'The scheduled end time of the session', example: '2023-10-25T12:00:00Z' })
+  @IsDateString()
   @IsNotEmpty()
   scheduled_end!: string;
-
-  @ApiProperty({ description: 'The user who created the session', example: 'user-id-123' })
-  @IsUUID()
-  @IsOptional()
-  created_by?: string;
-
-  @ApiProperty({ description: 'The room where the session is held', example: 'room-id-123' })
-  @IsOptional()
-  room_id?: string;
 }

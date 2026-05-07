@@ -9,12 +9,14 @@ import { AuthModule } from '../auth/auth.module';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { SessionSchedulerService } from './session.scheduler';
 import { RoomsModule } from '../rooms/rooms.module';
+import { CoursesModule } from '../courses/courses.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Session, Course, SessionStudent]),
     AuthModule,
     RoomsModule,
+    CoursesModule,
   ],
   providers: [SessionService, RolesGuard, SessionSchedulerService],
   controllers: [SessionController],

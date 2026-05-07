@@ -20,7 +20,7 @@ export class AuthService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async createUser(dto: CreateUserDto): Promise<User> {
     await this.verifyEmailDomain(dto.email);
@@ -59,9 +59,19 @@ export class AuthService {
   }
 
   private async verifyEmailDomain(email: string): Promise<void> {
+    if (process.env.SKIP_EMAIL_VERIFY === 'true') {
+      return;
+    }
+
     const domain = email.split('@')[1];
     if (!domain) {
       throw new BadRequestException('Email is not valid');
+    }
+
+    // Allow localhost and common dev domains without DNS check
+    const devDomains = ['localhost', 'example.com', 'test.com'];
+    if (devDomains.includes(domain.toLowerCase())) {
+      return;
     }
 
     try {
@@ -69,8 +79,11 @@ export class AuthService {
       if (mxRecords && mxRecords.length > 0) {
         return;
       }
-    } catch {
-      // ignore and try fallback
+    } catch (error: any) {
+      if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEOUT' || error.code === 'ENOTFOUND') {
+        // If DNS query fails due to network or server issues, we skip verification
+        return;
+      }
     }
 
     try {
@@ -78,8 +91,10 @@ export class AuthService {
       if (aRecords && aRecords.length > 0) {
         return;
       }
-    } catch {
-      // ignore fallback failure
+    } catch (error: any) {
+      if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEOUT' || error.code === 'ENOTFOUND') {
+        return;
+      }
     }
 
     throw new BadRequestException('Email domain is not valid or cannot be verified');
@@ -123,7 +138,7 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Wrong credentials');
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) throw new UnauthorizedException('Wrong credentials'); 
+    if (!isMatch) throw new UnauthorizedException('Wrong credentials');
 
     return {
       access_token: this.jwtService.sign({ sub: user.id, email: user.email }),
