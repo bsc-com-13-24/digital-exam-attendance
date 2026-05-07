@@ -6,6 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { LoginDto } from './dto/login.dto';
 
 @ApiBearerAuth()
 @Controller('auth')
@@ -20,7 +21,7 @@ export class AuthController {
 
   // public login
   @Post('login')
-  login(@Body() body: { email: string; password: string }) {
+  login(@Body() body: LoginDto ) {
     return this.authService.login(body.email, body.password);
   }
 
