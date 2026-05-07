@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsInt, IsBoolean, IsOptional, MaxLength, Min } from 'class-validator';
 
 export class CreateRoomDto {
-  @ApiProperty({ example: 'A101' })
+  @ApiProperty({ example: 'A101', description: 'Unique code for the room' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(20)
