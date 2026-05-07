@@ -1,57 +1,98 @@
-# Digital Examination Attendance System: Design Proposal
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
----
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-## 1. Problem Statement
-Manual, paper-based attendance during examinations is inefficient and disruptive. Traditional methods rely on invigilators moving through rooms to verify students, leading to several critical issues:
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-*   **Operational Inefficiency:** High workload for staff and time-consuming processes, especially for large cohorts.
-*   **Data Integrity:** Increased risk of human error, missed entries, and proxy attendance.
-*   **Lack of Real-time Data:** No immediate visibility into attendance figures until after the exam.
-*   **Disturbance:** Verification during the exam interrupts student concentration.
+## Description
 
----
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## 2. Proposed Solution
-A digital system that records attendance at the **point of entry**. Students must scan their institutional ID cards before entering the hall, shifting the verification process to the start of the session.
+## Project setup
 
-### Workflow
-1.  **Scanning:** Invigilators scan student IDs at the entrance.
-2.  **Validation:** The system verifies registration for the specific session.
-3.  **Logging:** Presence is recorded automatically with a precise timestamp.
+```bash
+$ npm install
+```
 
----
+## Compile and run the project
 
-## 3. System Requirements
+```bash
+# development
+$ npm run start
 
-### Functional Requirements
-| Feature | Description |
-| :--- | :--- |
-| **Identification** | Scan IDs and validate registration for the specific exam. |
-| **Attendance Log** | Store identity and entry timestamps automatically. |
-| **Access Control** | Prevent unauthorized or duplicate entries. |
-| **Manual Override** | Search and mark students manually if scanning fails. |
-| **Reporting** | Generate real-time statistics (total present/absent/late). |
+# watch mode
+$ npm run start:dev
 
-### Non-Functional Requirements
-*   **Reliability:** Offline mode support to handle network outages.
-*   **Performance:** Rapid processing to prevent entry bottlenecks.
-*   **Security:** Data encryption and protection against record tampering.
-*   **Usability:** Simple interface requiring minimal staff training.
+# production mode
+$ npm run start:prod
+```
 
----
+## Run tests
 
-## 4. Risks and Mitigations
+```bash
+# unit tests
+$ npm run test
 
-| Risk | Mitigation Strategy |
-| :--- | :--- |
-| **System Failure** | Offline data caching and backup paper sheets. |
-| **Entry Congestion** | Multiple scanning stations and staggered arrival times. |
-| **Lost/Damaged IDs** | Manual lookup via student ID number or name. |
-| **Impersonation** | Visual photo verification displayed on the scanner screen. |
-| **Duplicate Scans** | System logic to block multiple entries per session. |
+# e2e tests
+$ npm run test:e2e
 
----
+# test coverage
+$ npm run test:cov
+```
 
-## 5. Conclusion
-The **Digital Examination Attendance System** replaces outdated manual processes with a fast, secure, and automated entry-point verification. This transition reduces administrative burden, improves data accuracy, and ensures a more focused environment for students within the examination hall.
+## Deployment
+
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ npm install -g @nestjs/mau
+$ mau deploy
+```
+
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+
+## Resources
+
+Check out a few resources that may come in handy when working with NestJS:
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
