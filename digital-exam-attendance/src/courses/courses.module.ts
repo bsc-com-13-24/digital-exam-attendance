@@ -13,5 +13,6 @@ import { RolesGuard } from '../auth/guards/roles.guard';
     ],
   controllers: [CoursesController],
   providers: [CoursesService, RolesGuard],
+  exports: [CoursesService],
 })
 export class CoursesModule {}
