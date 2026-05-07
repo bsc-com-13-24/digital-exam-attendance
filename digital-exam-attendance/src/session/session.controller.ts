@@ -20,13 +20,9 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { EnrollStudentsDto } from './dto/enroll-students.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-/**
-  SessionController handles all HTTP requests under /api/v1/session.
- 
-  Everything here requires a valid JWT token. Role-based guards
-  then further restrict which users can do what.
- */
+@ApiBearerAuth()
 @Controller('sessions')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class SessionController {
