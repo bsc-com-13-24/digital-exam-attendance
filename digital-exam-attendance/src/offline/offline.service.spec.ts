@@ -1,7 +1,6 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { OfflineService } from './offline.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
@@ -37,35 +36,9 @@ describe('OfflineService', () => {
       createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
     };
 
-    mockAttendanceRepo = {
-      findOne: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
-    };
-
-    mockSessionStudentRepo = {
-      findOne: jest.fn(),
-    };
-
-    mockSessionRepo = {
-      findOne: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OfflineService,
-        {
-          provide: getRepositoryToken(AttendanceRecord),
-          useValue: mockAttendanceRepo,
-        },
-        {
-          provide: getRepositoryToken(SessionStudent),
-          useValue: mockSessionStudentRepo,
-        },
-        {
-          provide: getRepositoryToken(Session),
-          useValue: mockSessionRepo,
-        },
         {
           provide: DataSource,
           useValue: mockDataSource,
