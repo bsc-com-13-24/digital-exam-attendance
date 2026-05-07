@@ -22,11 +22,12 @@ async function bootstrap() {
     .setTitle('Digital Exam Attendance API')
     .setDescription('API documentation')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  const options = new DocumentBuilder().addBearerAuth();
+  
 
   SwaggerModule.setup('api/docs', app, document);
 
