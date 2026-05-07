@@ -25,6 +25,6 @@ export class CreateUserDto {
 
   @ApiProperty({ example: 'teacher' })
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   role!: string;
 }
