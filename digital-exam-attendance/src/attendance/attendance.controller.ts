@@ -9,7 +9,9 @@ import { SessionStudent } from '../session/entities/session-students.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('attendance')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class AttendanceController {
