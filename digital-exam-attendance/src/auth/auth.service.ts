@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException, BadRequestExcepti
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { resolve4, resolveMx } from 'dns/promises';
+import { randomBytes } from 'crypto';
 import { User } from './entities/users.entity';
 import { UserRole } from './entities/user-roles.entity';
 import { Role } from './entities/roles.entity';
@@ -22,7 +23,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
-  async createUser(dto: CreateUserDto): Promise<User> {
+  async createUser(dto: CreateUserDto): Promise<{ message: string; userId: string }> {
     await this.verifyEmailDomain(dto.email);
 
     const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
@@ -33,12 +34,19 @@ export class AuthService {
     // hash password
     const password_hash = await bcrypt.hash(dto.password, 10);
 
+    // Generate verification token
+    const verificationToken = this.generateVerificationToken();
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // map fields
     const user = this.userRepository.create({
       first_name: dto.first_name,
       last_name: dto.last_name,
       email: dto.email,
       password_hash,
+      email_verified: false,
+      verification_token: verificationToken,
+      verification_token_expiry: verificationTokenExpiry,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -55,7 +63,103 @@ export class AuthService {
       }
     }
 
-    return this.getUserWithRoles(savedUser.id);
+    // Send verification email
+    await this.sendVerificationEmail(savedUser.email, verificationToken);
+
+    return {
+      message: `User registered successfully. A verification email has been sent to ${savedUser.email}. Please verify your email to access the system.`,
+      userId: savedUser.id,
+    };
+  }
+
+  /**
+   * Generate a random verification token
+   */
+  private generateVerificationToken(): string {
+    return randomBytes(32).toString('hex');
+  }
+
+  /**
+   * Verify user email with token
+   */
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { verification_token: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    // Check if token has expired
+    if (user.verification_token_expiry && user.verification_token_expiry < new Date()) {
+      throw new BadRequestException('Verification token has expired. Please request a new verification email.');
+    }
+
+    // Mark email as verified
+    user.email_verified = true;
+    user.verification_token = null;
+    user.verification_token_expiry = null;
+
+    await this.userRepository.save(user);
+
+    return { message: 'Email verified successfully! You can now login to the system.' };
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+
+    if (user.email_verified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    // Generate new verification token
+    const verificationToken = this.generateVerificationToken();
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    user.verification_token = verificationToken;
+    user.verification_token_expiry = verificationTokenExpiry;
+
+    await this.userRepository.save(user);
+
+    // Send verification email
+    await this.sendVerificationEmail(user.email, verificationToken);
+
+    return { message: `A new verification email has been sent to ${email}` };
+  }
+
+  /**
+   * Send verification email (can be configured with nodemailer)
+   */
+  private async sendVerificationEmail(email: string, token: string): Promise<void> {
+    // TODO: Integrate with nodemailer or other email service
+    // For now, log the verification link to console
+    const verificationLink = `http://localhost:3000/api/v1/auth/verify-email?token=${token}`;
+    console.log(`
+      ========================================
+      EMAIL VERIFICATION
+      ========================================
+      To: ${email}
+      Verification Link: ${verificationLink}
+      Token: ${token}
+      Valid for: 24 hours
+      ========================================
+    `);
+
+    // In production, replace this with actual email sending:
+    // const transporter = nodemailer.createTransport({...});
+    // await transporter.sendMail({
+    //   to: email,
+    //   subject: 'Verify Your Email',
+    //   html: `<a href="${verificationLink}">Click here to verify your email</a>`
+    // });
   }
 
   private async verifyEmailDomain(email: string): Promise<void> {
@@ -137,11 +241,27 @@ export class AuthService {
     const user = await this.getUserByEmail(email);
     if (!user) throw new UnauthorizedException('Wrong credentials');
 
+    // Check if email is verified
+    if (!user.email_verified) {
+      throw new UnauthorizedException(
+        'Email is not verified. Please check your email for the verification link or request a new one.',
+      );
+    }
+
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) throw new UnauthorizedException('Wrong credentials');
 
+    // Get user roles for the token
+    const userWithRoles = await this.getUserWithRoles(user.id);
+    const roles = userWithRoles.roles.map((ur) => ur.role.name);
+
     return {
-      access_token: this.jwtService.sign({ sub: user.id, email: user.email }),
+      access_token: this.jwtService.sign({
+        sub: user.id,
+        email: user.email,
+        fullName: `${user.first_name} ${user.last_name}`,
+        roles: roles,
+      }),
     };
   }
 }

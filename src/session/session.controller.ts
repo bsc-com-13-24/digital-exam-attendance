@@ -40,7 +40,11 @@ export class SessionController {
     @Body() dto: CreateSessionDto,
     @Request() req,
   ): Promise<Session> {
-    return await this.sessionService.createSession(dto, req.user.userId);
+    return await this.sessionService.createSession(
+      dto,
+      req.user.userId,
+      req.user.fullName,
+    );
   }
 
 

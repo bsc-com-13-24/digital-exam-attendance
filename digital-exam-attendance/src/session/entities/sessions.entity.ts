@@ -2,6 +2,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToMany,
+  JoinTable,
   ManyToOne,
   JoinColumn,
   OneToMany,
@@ -38,7 +40,6 @@ export class Session {
   @JoinColumn({ name: 'course_id' })
   course!: Course;
 
-  @Exclude()
   @Column({ name: 'course_id' })
   course_id!: string;
 
@@ -52,7 +53,7 @@ export class Session {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'creator_id' })
-  created_by_user!: User;
+  creator_user!: User;
 
   @Exclude()
   @Column({ name: 'creator_id' })

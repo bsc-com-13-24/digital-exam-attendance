@@ -9,16 +9,26 @@ import { Repository } from 'typeorm';
 import { Room } from './entities/rooms.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
+import { SessionStudent } from '../session/entities/session-students.entity';
+import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
 
 @Injectable()
 export class RoomsService {
+  
   constructor(
     @InjectRepository(Room)
     private readonly roomRepository: Repository<Room>,
+    @InjectRepository(SessionStudent)
+    private readonly sessionStudentRepository: Repository<SessionStudent>,
+    @InjectRepository(AttendanceRecord)
+    private readonly attendanceRepository: Repository<AttendanceRecord>,
   ) {}
 
-  async createRoom(dto: CreateRoomDto, userId: string): Promise<Room> {
-    // Check for duplicate room code
+  async createRoom(
+    dto: CreateRoomDto,
+    userId: string,
+    fullName: string,
+  ): Promise<Room> {
     const existing = await this.roomRepository.findOne({
       where: { room_code: dto.room_code },
     });
@@ -30,7 +40,8 @@ export class RoomsService {
 
     const room = this.roomRepository.create({
       ...dto,
-      created_by: userId,
+      creator_id: userId,
+      created_by: fullName,
     });
     return await this.roomRepository.save(room);
   }
@@ -84,7 +95,7 @@ export class RoomsService {
     userId: string,
   ): Promise<Room> {
     const room = await this.getRoomById(id);
-    if (room.created_by !== userId) {
+    if (room.creator_id !== userId) {
       throw new ForbiddenException('You can only update rooms you created');
     }
     await this.roomRepository.update(id, dto);
@@ -93,7 +104,7 @@ export class RoomsService {
 
   async deleteRoom(id: string, userId: string): Promise<{ message: string }> {
     const room = await this.getRoomById(id);
-    if (room.created_by !== userId) {
+    if (room.creator_id !== userId) {
       throw new ForbiddenException('You can only delete rooms you created');
     }
     await this.roomRepository.delete(id);
@@ -103,11 +114,36 @@ export class RoomsService {
   async getSessionsByRoom(roomId: string): Promise<Room> {
     const room = await this.roomRepository.findOne({
       where: { id: roomId },
-      relations: ['sessions', 'sessions.course'],
+      relations: ['sessions', 'sessions.courses'],
     });
     if (!room) {
       throw new NotFoundException(`Room with ID ${roomId} not found`);
     }
     return room;
+  }
+
+  async verifyStudentInRoom(sessionId: string, roomCode: string, studentId: string) {
+    const room = await this.roomRepository.findOne({ where: { room_code: roomCode } });
+    if (!room) {
+      return { valid: false, message: 'Invalid room code' };
+    }
+
+    const enrollment = await this.sessionStudentRepository.findOne({
+      where: { session_id: sessionId, student_number: studentId }
+    });
+
+    if (!enrollment) {
+      return { valid: false, message: 'Student not enrolled in this session' };
+    }
+
+    return {
+      valid: true,
+      room: {
+        id: room.id,
+        name: room.name,
+        building: room.building,
+        room_code: room.room_code
+      }
+    };
   }
 }
