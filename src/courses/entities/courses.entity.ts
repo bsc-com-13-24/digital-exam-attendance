@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { Session } from '../../session/entities/sessions.entity';
 import { User } from '../../auth/entities/users.entity';
 
@@ -26,6 +26,6 @@ export class Course {
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;
 
-  @OneToMany(() => Session, (session) => session.course)
+  @ManyToMany(() => Session, (session) => session.courses)
   sessions!: Session[];
 }

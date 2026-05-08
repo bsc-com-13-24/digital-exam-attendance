@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Session } from './entities/sessions.entity';
 import { Course } from '../courses/entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
@@ -28,6 +28,8 @@ export class SessionService {
   ) {}
 
   async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
+    const { course_ids, ...rest } = dto;
+
     // Validate room if provided
     if (dto.room_id) {
       const room = await this.roomsService.getRoomById(dto.room_id);
@@ -39,8 +41,9 @@ export class SessionService {
     }
 
     const session = this.sessionRepository.create({
-      ...dto,
+      ...rest,
       created_by: userId,
+      courses: course_ids.map((id) => ({ id } as Course)),
     });
     return await this.sessionRepository.save(session);
   }
@@ -50,12 +53,12 @@ export class SessionService {
     if (status) {
       return await this.sessionRepository.find({
         where: { status },
-        relations: ['course', 'room'],
+        relations: ['courses', 'room'],
         order: { scheduled_start: 'ASC' },
       });
     }
     return await this.sessionRepository.find({
-      relations: ['course', 'room'],
+      relations: ['courses', 'room'],
       order: { scheduled_start: 'ASC' },
     });
   }
@@ -63,7 +66,7 @@ export class SessionService {
   async getSessionById(id: string): Promise<Session> {
     const session = await this.sessionRepository.findOne({
       where: { id },
-      relations: ['course', 'room'],
+      relations: ['courses', 'room'],
     });
     if (!session) {
       throw new NotFoundException(`Session with ID ${id} not found`);
@@ -74,7 +77,7 @@ export class SessionService {
   async getSessionByStatus(status: string): Promise<Session[]> {
     return await this.sessionRepository.find({
       where: { status },
-      relations: ['course', 'room'],
+      relations: ['courses', 'room'],
       order: { scheduled_start: 'ASC' },
     });
   }
@@ -88,8 +91,16 @@ export class SessionService {
     if (session.created_by !== userId) {
       throw new ForbiddenException('You can only update sessions you created');
     }
-    await this.sessionRepository.update(id, updateSessionDto);
-    return await this.getSessionById(id);
+
+    const { course_ids, ...rest } = updateSessionDto;
+
+    if (course_ids) {
+      session.courses = course_ids.map((cid) => ({ id: cid } as Course));
+    }
+
+    Object.assign(session, rest);
+
+    return await this.sessionRepository.save(session);
   }
 
   async removeSession(
