@@ -21,7 +21,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) { }
 
-  @Roles('admin')
+
   @Post()
   async createRoom(
     @Body() dto: CreateRoomDto,

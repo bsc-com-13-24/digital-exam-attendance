@@ -14,6 +14,7 @@ import { SessionStudent } from './session-students.entity';
 import { AttendanceRecord } from '../../attendance/entities/attendance-records.entity';
 import { User } from '../../auth/entities/users.entity';
 import { Room } from '../../rooms/entities/rooms.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('sessions')
 export class Session {
@@ -35,18 +36,18 @@ export class Session {
   @Column({ length: 20, default: 'upcoming' })
   status!: string;
 
-  @ManyToMany(() => Course, (course) => course.sessions)
-  @JoinTable({
-    name: 'session_courses',
-    joinColumn: { name: 'session_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'course_id', referencedColumnName: 'id' },
-  })
-  courses!: Course[];
+  @ManyToOne(() => Course, (course) => course.sessions)
+  @JoinColumn({ name: 'course_id' })
+  course!: Course;
+
+  @Column({ name: 'course_id' })
+  course_id!: string;
 
   @ManyToOne(() => Room, (room) => room.sessions, { nullable: true })
   @JoinColumn({ name: 'room_id' })
   room!: Room;
 
+  @Exclude()
   @Column({ name: 'room_id', nullable: true })
   room_id!: string;
 
@@ -54,11 +55,15 @@ export class Session {
   @JoinColumn({ name: 'creator_id' })
   creator_user!: User;
 
+  @Exclude()
   @Column({ name: 'creator_id' })
   creator_id!: string;
 
   @Column({ name: 'created_by', length: 255 })
   created_by!: string;
+
+  @Column({ type: 'int', nullable: true })
+  expected_students?: number;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -16,6 +17,7 @@ import { EnrollStudentsDto } from './dto/enroll-students.dto';
 import { RoomsService } from '../rooms/rooms.service';
 import { CoursesService } from '../courses/courses.service';
 import { AuthService } from '../auth/auth.service';
+import { User } from '../auth/entities/users.entity'
 
 @Injectable()
 export class SessionService {
@@ -53,6 +55,22 @@ export class SessionService {
       );
     }
 
+    // 4. Validate room capacity
+    if (dto.expected_students) {
+      if (dto.expected_students > room.capacity) {
+        throw new BadRequestException(
+          `Room "${room.name}" capacity (${room.capacity}) is less than expected students (${dto.expected_students})`,
+        );
+      }
+    }
+
+    // 5. Check for room schedule conflicts
+    await this.checkRoomConflicts(
+      room.id,
+      new Date(dto.scheduled_start),
+      new Date(dto.scheduled_end),
+    );
+
     const session = this.sessionRepository.create({
       ...rest,
       creator_id: userId,
@@ -63,6 +81,34 @@ export class SessionService {
     });
 
     return await this.sessionRepository.save(session);
+  }
+
+  private async checkRoomConflicts(
+    roomId: string,
+    start: Date,
+    end: Date,
+    excludeSessionId?: string,
+  ): Promise<void> {
+    const query = this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.room_id = :roomId', { roomId })
+      .andWhere('session.status != :cancelled', { cancelled: 'cancelled' })
+      .andWhere(
+        '(session.scheduled_start < :end AND session.scheduled_end > :start)',
+        { start, end },
+      );
+
+    if (excludeSessionId) {
+      query.andWhere('session.id != :excludeSessionId', { excludeSessionId });
+    }
+
+    const conflict = await query.getOne();
+
+    if (conflict) {
+      throw new ConflictException(
+        `Room is already booked for session "${conflict.title}" during this time`,
+      );
+    }
   }
 
   async getAllSessions(status?: string): Promise<Session[]> {
@@ -130,9 +176,15 @@ export class SessionService {
       session.room_id = room.id;
     }
 
-    Object.assign(session, rest);
+    // Map venue if provided
+    if (updateSessionDto.venue) {
+      const room = await this.roomsService.getRoomByCodeOrName(updateSessionDto.venue);
+      updateData.room_id = room.id;
+      updateData.venue = room.name;
+    }
 
-    return await this.sessionRepository.save(session);
+    await this.sessionRepository.update(id, updateData);
+    return await this.getSessionById(id);
   }
 
   async removeSession(
