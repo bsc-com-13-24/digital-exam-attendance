@@ -26,4 +26,8 @@ export class CreateSessionDto {
   @IsDateString()
   @IsNotEmpty()
   scheduled_end!: string;
+
+  @ApiProperty({ description: 'Number of students expected for this session', example: 50, required: false })
+  @IsOptional()
+  expected_students?: number;
 }
