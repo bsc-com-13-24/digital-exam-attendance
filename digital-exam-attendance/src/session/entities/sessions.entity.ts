@@ -12,6 +12,7 @@ import { SessionStudent } from './session-students.entity';
 import { AttendanceRecord } from '../../attendance/entities/attendance-records.entity';
 import { User } from '../../auth/entities/users.entity';
 import { Room } from '../../rooms/entities/rooms.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('sessions')
 export class Session {
@@ -37,6 +38,7 @@ export class Session {
   @JoinColumn({ name: 'course_id' })
   course!: Course;
 
+  @Exclude()
   @Column({ name: 'course_id' })
   course_id!: string;
 
@@ -44,6 +46,7 @@ export class Session {
   @JoinColumn({ name: 'room_id' })
   room!: Room;
 
+  @Exclude()
   @Column({ name: 'room_id', nullable: true })
   room_id!: string;
 
@@ -51,11 +54,15 @@ export class Session {
   @JoinColumn({ name: 'creator_id' })
   created_by_user!: User;
 
+  @Exclude()
   @Column({ name: 'creator_id' })
   creator_id!: string;
 
   @Column({ name: 'created_by', length: 255 })
   created_by!: string;
+
+  @Column({ type: 'int', nullable: true })
+  expected_students?: number;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;
