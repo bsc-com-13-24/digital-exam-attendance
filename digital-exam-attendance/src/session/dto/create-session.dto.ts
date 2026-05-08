@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsUUID, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID, IsDateString, IsOptional, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSessionDto {
@@ -7,12 +7,18 @@ export class CreateSessionDto {
   @IsNotEmpty()
   title!: string;
 
-  @ApiProperty({ example: 'COM211', description: 'The unique course code (e.g. COM211)' })
+  @ApiProperty({ type: [String], example: ['COM211', 'COM212'], description: 'List of unique course codes' })
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty()
+  course_codes!: string[];
+
+  @ApiProperty({ description: 'The room code where the session will be held', example: 'A101' })
   @IsString()
   @IsNotEmpty()
-  course_code!: string;
+  room_code!: string;
 
-  @ApiProperty({ description: 'The room code or name where the session will be held', example: 'A101' })
+  @ApiProperty({ description: 'The room name or general venue description (e.g. Lecture Theatre 1)', example: 'Lecture Theatre 1' })
   @IsString()
   @IsNotEmpty()
   venue!: string;
@@ -26,8 +32,4 @@ export class CreateSessionDto {
   @IsDateString()
   @IsNotEmpty()
   scheduled_end!: string;
-
-  @ApiProperty({ description: 'Number of students expected for this session', example: 50, required: false })
-  @IsOptional()
-  expected_students?: number;
 }

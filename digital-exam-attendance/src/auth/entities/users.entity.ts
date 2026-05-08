@@ -30,7 +30,7 @@ export class User {
   @Column({ name: 'is_active', default: true })
   is_active!: boolean;
 
-  @Column({ name: 'email_verified', default: false })
+  @Column({ name: 'email_verified', default: true })
   email_verified!: boolean;
 
   @Column({ name: 'verification_token', type: 'varchar2', length: 500, nullable: true })

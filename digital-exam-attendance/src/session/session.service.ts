@@ -33,19 +33,26 @@ export class SessionService {
     private readonly authService: AuthService,
   ) { }
 
-  async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
-    // 1. Get user name from database
-    const user = await this.authService.getUserById(userId);
-    const createdByName = `${user.first_name} ${user.last_name}`;
+  async createSession(
+    dto: CreateSessionDto,
+    userId: string,
+    fullName: string,
+  ): Promise<Session> {
+    const { course_codes, room_code, ...rest } = dto;
 
-    // Validate room if provided
-    if (dto.room_id) {
-      const room = await this.roomsService.getRoomById(dto.room_id);
-      if (!room.is_active) {
-        throw new BadRequestException(
-          `Room "${room.name}" is not currently active`,
-        );
-      }
+    // Fetch courses by codes
+    const courses: Course[] = [];
+    for (const code of course_codes) {
+      const course = await this.coursesService.getCourseByCode(code);
+      courses.push(course);
+    }
+
+    // Fetch room by code
+    const room = await this.roomsService.getRoomByCode(room_code);
+    if (!room.is_active) {
+      throw new BadRequestException(
+        `Room "${room.name}" is not currently active`,
+      );
     }
 
     // 4. Validate room capacity
@@ -67,7 +74,10 @@ export class SessionService {
     const session = this.sessionRepository.create({
       ...rest,
       creator_id: userId,
-      created_by: createdByName,
+      created_by: fullName,
+      courses: courses,
+      room: room,
+      room_id: room.id,
     });
 
     return await this.sessionRepository.save(session);
@@ -144,10 +154,26 @@ export class SessionService {
       throw new ForbiddenException('You can only update sessions you created');
     }
 
-    const { course_ids, ...rest } = updateSessionDto;
+    const { course_codes, room_code, ...rest } = updateSessionDto;
 
-    if (course_ids) {
-      session.courses = course_ids.map((cid) => ({ id: cid } as Course));
+    if (course_codes) {
+      const courses: Course[] = [];
+      for (const code of course_codes) {
+        const course = await this.coursesService.getCourseByCode(code);
+        courses.push(course);
+      }
+      session.courses = courses;
+    }
+
+    if (room_code) {
+      const room = await this.roomsService.getRoomByCode(room_code);
+      if (!room.is_active) {
+        throw new BadRequestException(
+          `Room "${room.name}" is not currently active`,
+        );
+      }
+      session.room = room;
+      session.room_id = room.id;
     }
 
     // Map venue if provided
