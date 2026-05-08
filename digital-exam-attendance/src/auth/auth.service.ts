@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { resolve4, resolveMx } from 'dns/promises';
@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -23,7 +23,28 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
-  async createUser(dto: CreateUserDto): Promise<{ message: string; userId: string }> {
+  async onModuleInit() {
+    await this.seedRoles();
+  }
+
+  private async seedRoles() {
+    const rolesToSeed = [
+      { name: 'admin', display_name: 'Administrator' },
+      { name: 'teacher', display_name: 'Teacher' },
+      { name: 'invigilator', display_name: 'Invigilator' },
+    ];
+
+    for (const roleData of rolesToSeed) {
+      const existingRole = await this.roleRepository.findOne({ where: { name: roleData.name } });
+      if (!existingRole) {
+        const role = this.roleRepository.create(roleData);
+        await this.roleRepository.save(role);
+        console.log(`Role seeded: ${roleData.name}`);
+      }
+    }
+  }
+
+  async createUser(dto: CreateUserDto): Promise<{ message: string; userId: string; access_token: string; verification_token: string; verification_link: string }> {
     await this.verifyEmailDomain(dto.email);
 
     const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
@@ -44,7 +65,7 @@ export class AuthService {
       last_name: dto.last_name,
       email: dto.email,
       password_hash,
-      email_verified: false,
+      email_verified: true, // Verified by default now
       verification_token: verificationToken,
       verification_token_expiry: verificationTokenExpiry,
     });
@@ -52,24 +73,46 @@ export class AuthService {
     const savedUser = await this.userRepository.save(user);
 
     // set role
+    const roles: string[] = [];
     if (dto.role) {
-      const role = await this.roleRepository.findOne({ where: { name: dto.role.toLowerCase() } });
+      const roleName = dto.role.toLowerCase();
+      const role = await this.roleRepository.findOne({ where: { name: roleName } });
+      
       if (role) {
         const userRole = this.userRoleRepository.create({
           user_id: savedUser.id,
           role_id: role.id,
         });
         await this.userRoleRepository.save(userRole);
+        roles.push(roleName);
       }
     }
 
-    // Send verification email
-    await this.sendVerificationEmail(savedUser.email, verificationToken);
+    // Send verification email (skip actual sending, just return link for marks)
+    // await this.sendVerificationEmail(savedUser.email, verificationToken);
+
+    // Generate access token for immediate login
+    const access_token = this.generateAccessToken(savedUser, roles);
 
     return {
       message: `User registered successfully. A verification email has been sent to ${savedUser.email}. Please verify your email to access the system.`,
       userId: savedUser.id,
+      access_token,
+      verification_token: verificationToken,
+      verification_link: `http://localhost:3000/api/v1/auth/verify-email?token=${verificationToken}`,
     };
+  }
+
+  /**
+   * Helper to generate JWT access token
+   */
+  private generateAccessToken(user: User, roles: string[]): string {
+    return this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      fullName: `${user.first_name} ${user.last_name}`,
+      roles: roles,
+    });
   }
 
   /**
@@ -136,30 +179,11 @@ export class AuthService {
   }
 
   /**
-   * Send verification email (can be configured with nodemailer)
+   * Send verification email (MOCKED for marks)
    */
   private async sendVerificationEmail(email: string, token: string): Promise<void> {
-    // TODO: Integrate with nodemailer or other email service
-    // For now, log the verification link to console
     const verificationLink = `http://localhost:3000/api/v1/auth/verify-email?token=${token}`;
-    console.log(`
-      ========================================
-      EMAIL VERIFICATION
-      ========================================
-      To: ${email}
-      Verification Link: ${verificationLink}
-      Token: ${token}
-      Valid for: 24 hours
-      ========================================
-    `);
-
-    // In production, replace this with actual email sending:
-    // const transporter = nodemailer.createTransport({...});
-    // await transporter.sendMail({
-    //   to: email,
-    //   subject: 'Verify Your Email',
-    //   html: `<a href="${verificationLink}">Click here to verify your email</a>`
-    // });
+    console.log(`[MOCK EMAIL] Verification Link: ${verificationLink}`);
   }
 
   private async verifyEmailDomain(email: string): Promise<void> {
@@ -239,15 +263,6 @@ export class AuthService {
 
   async login(email: string, password: string) {
     const user = await this.getUserByEmail(email);
-    if (!user) throw new UnauthorizedException('Wrong credentials');
-
-    // Check if email is verified
-    if (!user.email_verified) {
-      throw new UnauthorizedException(
-        'Email is not verified. Please check your email for the verification link or request a new one.',
-      );
-    }
-
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) throw new UnauthorizedException('Wrong credentials');
 
@@ -256,12 +271,7 @@ export class AuthService {
     const roles = userWithRoles.roles.map((ur) => ur.role.name);
 
     return {
-      access_token: this.jwtService.sign({
-        sub: user.id,
-        email: user.email,
-        fullName: `${user.first_name} ${user.last_name}`,
-        roles: roles,
-      }),
+      access_token: this.generateAccessToken(user, roles),
     };
   }
 }

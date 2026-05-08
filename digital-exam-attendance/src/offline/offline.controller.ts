@@ -4,7 +4,10 @@ import { SyncOfflineDto } from './dto/sync-offline.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Offline Sync')
+@ApiBearerAuth('bearer')
 @Controller('offline')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class OfflineController {
