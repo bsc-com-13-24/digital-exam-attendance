@@ -24,7 +24,11 @@ export class RoomsService {
     private readonly attendanceRepository: Repository<AttendanceRecord>,
   ) {}
 
-  async createRoom(dto: CreateRoomDto, userId: string): Promise<Room> {
+  async createRoom(
+    dto: CreateRoomDto,
+    userId: string,
+    fullName: string,
+  ): Promise<Room> {
     const existing = await this.roomRepository.findOne({
       where: { room_code: dto.room_code },
     });
@@ -36,7 +40,8 @@ export class RoomsService {
 
     const room = this.roomRepository.create({
       ...dto,
-      created_by: userId,
+      creator_id: userId,
+      created_by: fullName,
     });
     return await this.roomRepository.save(room);
   }
@@ -77,7 +82,7 @@ export class RoomsService {
     userId: string,
   ): Promise<Room> {
     const room = await this.getRoomById(id);
-    if (room.created_by !== userId) {
+    if (room.creator_id !== userId) {
       throw new ForbiddenException('You can only update rooms you created');
     }
     await this.roomRepository.update(id, dto);
@@ -86,7 +91,7 @@ export class RoomsService {
 
   async deleteRoom(id: string, userId: string): Promise<{ message: string }> {
     const room = await this.getRoomById(id);
-    if (room.created_by !== userId) {
+    if (room.creator_id !== userId) {
       throw new ForbiddenException('You can only delete rooms you created');
     }
     await this.roomRepository.delete(id);
@@ -96,7 +101,7 @@ export class RoomsService {
   async getSessionsByRoom(roomId: string): Promise<Room> {
     const room = await this.roomRepository.findOne({
       where: { id: roomId },
-      relations: ['sessions', 'sessions.course'],
+      relations: ['sessions', 'sessions.courses'],
     });
     if (!room) {
       throw new NotFoundException(`Room with ID ${roomId} not found`);

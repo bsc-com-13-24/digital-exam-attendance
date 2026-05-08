@@ -27,7 +27,11 @@ export class SessionService {
     private readonly roomsService: RoomsService,
   ) {}
 
-  async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
+  async createSession(
+    dto: CreateSessionDto,
+    userId: string,
+    fullName: string,
+  ): Promise<Session> {
     const { course_ids, ...rest } = dto;
 
     // Validate room if provided
@@ -42,7 +46,8 @@ export class SessionService {
 
     const session = this.sessionRepository.create({
       ...rest,
-      created_by: userId,
+      creator_id: userId,
+      created_by: fullName,
       courses: course_ids.map((id) => ({ id } as Course)),
     });
     return await this.sessionRepository.save(session);
@@ -88,7 +93,7 @@ export class SessionService {
     userId: string,
   ): Promise<Session> {
     const session = await this.getSessionById(id);
-    if (session.created_by !== userId) {
+    if (session.creator_id !== userId) {
       throw new ForbiddenException('You can only update sessions you created');
     }
 
@@ -108,7 +113,7 @@ export class SessionService {
     userId: string,
   ): Promise<{ message: string }> {
     const session = await this.getSessionById(id);
-    if (session.created_by !== userId) {
+    if (session.creator_id !== userId) {
       throw new ForbiddenException('You can only delete sessions you created');
     }
     await this.sessionRepository.delete(id);

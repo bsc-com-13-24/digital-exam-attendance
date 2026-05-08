@@ -113,7 +113,9 @@ export class AttendanceService {
       qb.andWhere('record.method = :method', { method: query.method });
     }
     if (query.course_id) {
-      qb.andWhere('session.course_id = :course_id', { course_id: query.course_id });
+      qb.innerJoin('session.courses', 'course', 'course.id = :course_id', {
+        course_id: query.course_id,
+      });
     }
 
     return qb.getMany();
