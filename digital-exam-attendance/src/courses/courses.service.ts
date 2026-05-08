@@ -20,10 +20,12 @@ export class CoursesService {
   async createCourse(
     createCourseDto: CreateCourseDto,
     userId: string,
+    fullName: string,
   ): Promise<Course> {
     const course = this.courseRepository.create({
       ...createCourseDto,
-      created_by: userId,
+      creator_id: userId,
+      created_by: fullName,
     });
     return await this.courseRepository.save(course);
   }
@@ -46,7 +48,7 @@ export class CoursesService {
     userId: string,
   ): Promise<Course> {
     const course = await this.getCourseById(id);
-    if (course.created_by !== userId) {
+    if (course.creator_id !== userId) {
       throw new ForbiddenException('You can only update courses you created');
     }
     await this.courseRepository.update(id, updateCourseDto);
@@ -55,7 +57,7 @@ export class CoursesService {
 
   async removeCourse(id: string, userId: string): Promise<{ message: string }> {
     const course = await this.getCourseById(id);
-    if (course.created_by !== userId) {
+    if (course.creator_id !== userId) {
       throw new ForbiddenException('You can only delete courses you created');
     }
     await this.courseRepository.delete(id);

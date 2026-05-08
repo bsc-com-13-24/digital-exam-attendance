@@ -30,6 +30,15 @@ export class User {
   @Column({ name: 'is_active', default: true })
   is_active!: boolean;
 
+  @Column({ name: 'email_verified', default: false })
+  email_verified!: boolean;
+
+  @Column({ name: 'verification_token', length: 500, nullable: true })
+  verification_token!: string | null;
+
+  @Column({ name: 'verification_token_expiry', type: 'timestamp', nullable: true })
+  verification_token_expiry!: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;
 

@@ -17,10 +17,13 @@ export class Course {
   is_active!: boolean;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
-  created_by_user!: User;
+  @JoinColumn({ name: 'creator_id' })
+  creator_user!: User;
 
-  @Column({ name: 'created_by' })
+  @Column({ name: 'creator_id' })
+  creator_id!: string;
+
+  @Column({ name: 'created_by', length: 255 })
   created_by!: string;
 
   @CreateDateColumn({ name: 'created_at' })
