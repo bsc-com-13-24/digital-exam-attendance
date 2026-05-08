@@ -36,23 +36,30 @@ export class SessionService {
     userId: string,
     fullName: string,
   ): Promise<Session> {
-    const { course_ids, ...rest } = dto;
+    const { course_codes, room_code, ...rest } = dto;
 
-    // Validate room if provided
-    if (dto.room_id) {
-      const room = await this.roomsService.getRoomById(dto.room_id);
-      if (!room.is_active) {
-        throw new BadRequestException(
-          `Room "${room.name}" is not currently active`,
-        );
-      }
+    // Fetch courses by codes
+    const courses: Course[] = [];
+    for (const code of course_codes) {
+      const course = await this.coursesService.getCourseByCode(code);
+      courses.push(course);
+    }
+
+    // Fetch room by code
+    const room = await this.roomsService.getRoomByCode(room_code);
+    if (!room.is_active) {
+      throw new BadRequestException(
+        `Room "${room.name}" is not currently active`,
+      );
     }
 
     const session = this.sessionRepository.create({
       ...rest,
       creator_id: userId,
       created_by: fullName,
-      courses: course_ids.map((id) => ({ id } as Course)),
+      courses: courses,
+      room: room,
+      room_id: room.id,
     });
 
     return await this.sessionRepository.save(session);
@@ -101,10 +108,26 @@ export class SessionService {
       throw new ForbiddenException('You can only update sessions you created');
     }
 
-    const { course_ids, ...rest } = updateSessionDto;
+    const { course_codes, room_code, ...rest } = updateSessionDto;
 
-    if (course_ids) {
-      session.courses = course_ids.map((cid) => ({ id: cid } as Course));
+    if (course_codes) {
+      const courses: Course[] = [];
+      for (const code of course_codes) {
+        const course = await this.coursesService.getCourseByCode(code);
+        courses.push(course);
+      }
+      session.courses = courses;
+    }
+
+    if (room_code) {
+      const room = await this.roomsService.getRoomByCode(room_code);
+      if (!room.is_active) {
+        throw new BadRequestException(
+          `Room "${room.name}" is not currently active`,
+        );
+      }
+      session.room = room;
+      session.room_id = room.id;
     }
 
     Object.assign(session, rest);
