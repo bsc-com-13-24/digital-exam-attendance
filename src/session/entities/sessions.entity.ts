@@ -2,6 +2,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToMany,
+  JoinTable,
   ManyToOne,
   JoinColumn,
   OneToMany,
@@ -33,12 +35,13 @@ export class Session {
   @Column({ length: 20, default: 'upcoming' })
   status!: string;
 
-  @ManyToOne(() => Course, (course) => course.sessions)
-  @JoinColumn({ name: 'course_id' })
-  course!: Course;
-
-  @Column({ name: 'course_id' })
-  course_id!: string;
+  @ManyToMany(() => Course, (course) => course.sessions)
+  @JoinTable({
+    name: 'session_courses',
+    joinColumn: { name: 'session_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'course_id', referencedColumnName: 'id' },
+  })
+  courses!: Course[];
 
   @ManyToOne(() => Room, (room) => room.sessions, { nullable: true })
   @JoinColumn({ name: 'room_id' })
@@ -48,10 +51,13 @@ export class Session {
   room_id!: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
-  created_by_user!: User;
+  @JoinColumn({ name: 'creator_id' })
+  creator_user!: User;
 
-  @Column({ name: 'created_by' })
+  @Column({ name: 'creator_id' })
+  creator_id!: string;
+
+  @Column({ name: 'created_by', length: 255 })
   created_by!: string;
 
   @CreateDateColumn({ name: 'created_at' })
