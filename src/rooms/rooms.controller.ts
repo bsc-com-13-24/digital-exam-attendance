@@ -24,7 +24,11 @@ export class RoomsController {
     @Body() dto: CreateRoomDto,
     @Request() req,
   ): Promise<Room> {
-    return await this.roomsService.createRoom(dto, req.user.userId);
+    return await this.roomsService.createRoom(
+      dto,
+      req.user.userId,
+      req.user.fullName,
+    );
   }
 
   @Roles('admin', 'teacher', 'invigilator')

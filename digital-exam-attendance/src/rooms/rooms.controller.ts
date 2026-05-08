@@ -6,9 +6,13 @@ import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth()
+/**
+ * RoomsController handles all HTTP requests under /api/v1/rooms.
+ *
+ * Everything here requires a valid JWT token. Role-based guards
+ * then further restrict which users can do what.
+ */
 @Controller('rooms')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class RoomsController {
@@ -20,7 +24,11 @@ export class RoomsController {
     @Body() dto: CreateRoomDto,
     @Request() req,
   ): Promise<Room> {
-    return await this.roomsService.createRoom(dto, req.user.userId);
+    return await this.roomsService.createRoom(
+      dto,
+      req.user.userId,
+      req.user.fullName,
+    );
   }
 
   @Roles('admin', 'teacher', 'invigilator')

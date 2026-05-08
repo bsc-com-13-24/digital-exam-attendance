@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { Session } from '../../session/entities/sessions.entity';
 import { User } from '../../auth/entities/users.entity';
 
@@ -17,15 +17,18 @@ export class Course {
   is_active!: boolean;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
-  created_by_user!: User;
+  @JoinColumn({ name: 'creator_id' })
+  creator_user!: User;
 
-  @Column({ name: 'created_by' })
+  @Column({ name: 'creator_id' })
+  creator_id!: string;
+
+  @Column({ name: 'created_by', length: 255 })
   created_by!: string;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at!: Date;
 
-  @OneToMany(() => Session, (session) => session.course)
+  @ManyToMany(() => Session, (session) => session.courses)
   sessions!: Session[];
 }
