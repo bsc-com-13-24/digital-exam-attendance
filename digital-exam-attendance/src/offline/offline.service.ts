@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException, ConflictException, NotFoundException, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, QueryRunner } from 'typeorm';
+import { DataSource, QueryRunner } from 'typeorm';
 import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
 import { Session } from '../session/entities/sessions.entity';
@@ -10,15 +9,7 @@ import { SyncOfflineDto, OfflineAttendanceRecordDto, SyncResult } from './dto/sy
 export class OfflineService {
   private readonly logger = new Logger(OfflineService.name);
 
-  constructor(
-    @InjectRepository(AttendanceRecord)
-    private attendanceRepo: Repository<AttendanceRecord>,
-    @InjectRepository(SessionStudent)
-    private sessionStudentRepo: Repository<SessionStudent>,
-    @InjectRepository(Session)
-    private sessionRepo: Repository<Session>,
-    private dataSource: DataSource,
-  ) {}
+  constructor(private dataSource: DataSource) {}
 
   async syncOfflineRecords(syncDto: SyncOfflineDto, userId: string): Promise<SyncResult> {
     if (!syncDto.offlineRecords || syncDto.offlineRecords.length === 0) {
@@ -106,13 +97,17 @@ export class OfflineService {
       );
     }
 
-    // create record
+    const markedAt = new Date(record.markedAt);
+    if (Number.isNaN(markedAt.getTime())) {
+      throw new BadRequestException(`Invalid markedAt timestamp: ${record.markedAt}`);
+    }
+
     const attendanceRecord = queryRunner.manager.create(AttendanceRecord, {
       session_id: record.sessionId,
       session_student_id: sessionStudent.id,
       status: record.status,
       method: record.method,
-      marked_at: new Date(record.markedAt),
+      marked_at: markedAt,
       remarks: record.remarks || null,
       marked_by: userId,
     });

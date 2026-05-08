@@ -76,6 +76,19 @@ export class RoomsService {
     return room;
   }
 
+  async getRoomByCodeOrName(identifier: string): Promise<Room> {
+    const room = await this.roomRepository.findOne({
+      where: [
+        { room_code: identifier },
+        { name: identifier }
+      ]
+    });
+    if (!room) {
+      throw new NotFoundException(`Room with code or name "${identifier}" not found`);
+    }
+    return room;
+  }
+
   async updateRoom(
     id: string,
     dto: UpdateRoomDto,

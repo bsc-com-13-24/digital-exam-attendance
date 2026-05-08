@@ -42,6 +42,14 @@ export class CoursesService {
     return course;
   }
 
+  async getCourseByCode(code: string): Promise<Course> {
+    const course = await this.courseRepository.findOne({ where: { code } });
+    if (!course) {
+      throw new NotFoundException(`Course with code "${code}" not found`);
+    }
+    return course;
+  }
+
   async updateCourse(
     id: string,
     updateCourseDto: UpdateCourseDto,

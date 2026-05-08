@@ -14,6 +14,8 @@ import { AddStudentDto } from './dto/add-student.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { EnrollStudentsDto } from './dto/enroll-students.dto';
 import { RoomsService } from '../rooms/rooms.service';
+import { CoursesService } from '../courses/courses.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class SessionService {
@@ -25,7 +27,9 @@ export class SessionService {
     private readonly sessionStudentRepository: Repository<SessionStudent>,
 
     private readonly roomsService: RoomsService,
-  ) {}
+    private readonly coursesService: CoursesService,
+    private readonly authService: AuthService,
+  ) { }
 
   async createSession(
     dto: CreateSessionDto,
@@ -50,9 +54,9 @@ export class SessionService {
       created_by: fullName,
       courses: course_ids.map((id) => ({ id } as Course)),
     });
+
     return await this.sessionRepository.save(session);
   }
-
 
   async getAllSessions(status?: string): Promise<Session[]> {
     if (status) {
