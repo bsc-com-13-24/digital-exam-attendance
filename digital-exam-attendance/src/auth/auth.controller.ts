@@ -50,36 +50,6 @@ export class AuthController {
     return this.authService.login(body.email, body.password);
   }
 
-  // verify email
-  @Get('verify-email')
-  @ApiOperation({ summary: 'Verify user email using verification token' })
-  @ApiResponse({ status: 200, description: 'Email verified successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid or expired verification token' })
-  verifyEmail(@Query('token') token: string) {
-    if (!token) {
-      throw new Error('Verification token is required');
-    }
-    return this.authService.verifyEmail(token);
-  }
-
-  // resend verification email
-  @Post('resend-verification-email')
-  @ApiOperation({ summary: 'Resend verification email to user' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', example: 'user@example.com' },
-      },
-      required: ['email'],
-    },
-  })
-  @ApiResponse({ status: 200, description: 'Verification email resent' })
-  @ApiResponse({ status: 400, description: 'Email already verified or bad request' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  resendVerificationEmail(@Body() body: { email: string }) {
-    return this.authService.resendVerificationEmail(body.email);
-  }
 
   // get user profile
   @UseGuards(AuthGuard('jwt'))
