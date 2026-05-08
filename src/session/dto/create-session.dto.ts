@@ -1,13 +1,14 @@
-import { IsString, IsNotEmpty, IsUUID, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID, IsDateString, IsOptional, IsArray } from 'class-validator';
 
 export class CreateSessionDto {
   @IsString()
   @IsNotEmpty()
   title!: string;
 
-  @IsUUID()
+  @IsArray()
+  @IsUUID(undefined, { each: true })
   @IsNotEmpty()
-  course_id!: string;
+  course_ids!: string[];
 
   @IsString()
   @IsNotEmpty()
