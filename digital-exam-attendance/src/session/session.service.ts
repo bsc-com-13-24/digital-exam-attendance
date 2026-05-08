@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Session } from './entities/sessions.entity';
 import { Course } from '../courses/entities/courses.entity';
 import { SessionStudent } from './entities/session-students.entity';
@@ -31,31 +31,28 @@ export class SessionService {
     private readonly authService: AuthService,
   ) { }
 
-  async createSession(dto: CreateSessionDto, userId: string): Promise<Session> {
-    // 1. Get user name from database
-    const user = await this.authService.getUserById(userId);
-    const createdByName = `${user.first_name} ${user.last_name}`;
+  async createSession(
+    dto: CreateSessionDto,
+    userId: string,
+    fullName: string,
+  ): Promise<Session> {
+    const { course_ids, ...rest } = dto;
 
-    // 2. Map course_code to course_id
-    const course = await this.coursesService.getCourseByCode(dto.course_code);
-
-    // 3. Map venue (room code/name) to room_id
-    const room = await this.roomsService.getRoomByCodeOrName(dto.venue);
-    if (!room.is_active) {
-      throw new BadRequestException(
-        `Room "${room.name}" is not currently active`,
-      );
+    // Validate room if provided
+    if (dto.room_id) {
+      const room = await this.roomsService.getRoomById(dto.room_id);
+      if (!room.is_active) {
+        throw new BadRequestException(
+          `Room "${room.name}" is not currently active`,
+        );
+      }
     }
 
     const session = this.sessionRepository.create({
-      title: dto.title,
-      venue: room.name,
-      scheduled_start: dto.scheduled_start,
-      scheduled_end: dto.scheduled_end,
-      course_id: course.id,
-      room_id: room.id,
+      ...rest,
       creator_id: userId,
-      created_by: createdByName,
+      created_by: fullName,
+      courses: course_ids.map((id) => ({ id } as Course)),
     });
 
     return await this.sessionRepository.save(session);
@@ -65,12 +62,12 @@ export class SessionService {
     if (status) {
       return await this.sessionRepository.find({
         where: { status },
-        relations: ['course', 'room'],
+        relations: ['courses', 'room'],
         order: { scheduled_start: 'ASC' },
       });
     }
     return await this.sessionRepository.find({
-      relations: ['course', 'room'],
+      relations: ['courses', 'room'],
       order: { scheduled_start: 'ASC' },
     });
   }
@@ -78,12 +75,20 @@ export class SessionService {
   async getSessionById(id: string): Promise<Session> {
     const session = await this.sessionRepository.findOne({
       where: { id },
-      relations: ['course', 'room'],
+      relations: ['courses', 'room'],
     });
     if (!session) {
       throw new NotFoundException(`Session with ID ${id} not found`);
     }
     return session;
+  }
+
+  async getSessionByStatus(status: string): Promise<Session[]> {
+    return await this.sessionRepository.find({
+      where: { status },
+      relations: ['courses', 'room'],
+      order: { scheduled_start: 'ASC' },
+    });
   }
 
   async updateSession(
@@ -96,23 +101,15 @@ export class SessionService {
       throw new ForbiddenException('You can only update sessions you created');
     }
 
-    const updateData: any = { ...updateSessionDto };
+    const { course_ids, ...rest } = updateSessionDto;
 
-    // Map course_code if provided
-    if (updateSessionDto.course_code) {
-      const course = await this.coursesService.getCourseByCode(updateSessionDto.course_code);
-      updateData.course_id = course.id;
+    if (course_ids) {
+      session.courses = course_ids.map((cid) => ({ id: cid } as Course));
     }
 
-    // Map venue if provided
-    if (updateSessionDto.venue) {
-      const room = await this.roomsService.getRoomByCodeOrName(updateSessionDto.venue);
-      updateData.room_id = room.id;
-      updateData.venue = room.name;
-    }
+    Object.assign(session, rest);
 
-    await this.sessionRepository.update(id, updateData);
-    return await this.getSessionById(id);
+    return await this.sessionRepository.save(session);
   }
 
   async removeSession(

@@ -236,8 +236,17 @@ export class AuthService {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) throw new UnauthorizedException('Wrong credentials');
 
+    // Get user roles for the token
+    const userWithRoles = await this.getUserWithRoles(user.id);
+    const roles = userWithRoles.roles.map((ur) => ur.role.name);
+
     return {
-      access_token: this.jwtService.sign({ sub: user.id, email: user.email }),
+      access_token: this.jwtService.sign({
+        sub: user.id,
+        email: user.email,
+        fullName: `${user.first_name} ${user.last_name}`,
+        roles: roles,
+      }),
     };
   }
 }
