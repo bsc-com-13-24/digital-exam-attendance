@@ -179,12 +179,15 @@ export class SessionService {
     // Map venue if provided
     if (updateSessionDto.venue) {
       const room = await this.roomsService.getRoomByCodeOrName(updateSessionDto.venue);
-      updateData.room_id = room.id;
-      updateData.venue = room.name;
+      session.room = room;
+      session.room_id = room.id;
+      session.venue = room.name;
     }
 
-    await this.sessionRepository.update(id, updateData);
-    return await this.getSessionById(id);
+    // Apply other changes
+    Object.assign(session, rest);
+
+    return await this.sessionRepository.save(session);
   }
 
   async removeSession(
