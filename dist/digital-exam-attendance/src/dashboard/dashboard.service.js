@@ -17,8 +17,13 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const sessions_entity_1 = require("../session/entities/sessions.entity");
+<<<<<<< HEAD
 const attendance_records_entity_1 = require("../attendance/entities/attendance-records.entity");
 const session_students_entity_1 = require("../session/entities/session-students.entity");
+=======
+const attendance_records_entity_1 = require("../../../src/attendance/entities/attendance-records.entity");
+const session_students_entity_1 = require("../../../src/session/entities/session-students.entity");
+>>>>>>> e61f5395b1872702d9047eb369344b7689e2169a
 const typeorm_3 = require("typeorm");
 let DashboardService = class DashboardService {
     sessionRepository;
