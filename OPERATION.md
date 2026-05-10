@@ -433,6 +433,7 @@ Valid methods: `scan`, `manual`
 ```json
 {
   "deviceId": "Scanner-Device-001",
+  "lastSyncTimestamp": "2026-05-14T18:00:00Z",
   "offlineRecords": [
     {
       "localId": "local-uuid-001",
@@ -447,7 +448,10 @@ Valid methods: `scan`, `manual`
 }
 ```
 
-> The sync operation runs in a single database transaction. Individual record failures (e.g. student not enrolled, duplicate record) are captured and reported without rolling back the entire batch. A critical transaction-level error rolls back all changes.
+> **Sync Features:**
+> - **Per-Record Transactions:** Transactions are scoped per-record. A validation failure (e.g. invalid student) for one record will **not** roll back the entire batch.
+> - **Last-Write-Wins (LWW):** If an attendance record already exists for a student, the server compares timestamps. The newer record overwrites the older one. Older incoming records are silently ignored without throwing conflicts.
+> - **Push-Pull Sync:** Providing the optional `lastSyncTimestamp` triggers a pull phase. The server will respond with `serverUpdates` containing any attendance records modified by other devices since that timestamp.
 
 **Response:**
 ```json
@@ -457,7 +461,21 @@ Valid methods: `scan`, `manual`
   "data": {
     "successCount": 1,
     "failureCount": 0,
-    "failures": []
+    "failures": [
+      {
+         "localId": "local-uuid-002",
+         "code": "STUDENT_NOT_REGISTERED",
+         "reason": "Student BSC/12/24 is not registered for session <session_uuid>"
+      }
+    ],
+    "serverUpdates": [
+      {
+         "id": "<record_uuid>",
+         "session_id": "<session_uuid>",
+         "status": "completed",
+         "marked_at": "2026-05-15T09:30:00Z"
+      }
+    ]
   }
 }
 ```

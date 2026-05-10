@@ -4,7 +4,7 @@ import { SyncOfflineDto } from './dto/sync-offline.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Offline Sync')
 @ApiBearerAuth('bearer')
@@ -17,6 +17,12 @@ export class OfflineController {
 
   @Roles('admin', 'teacher', 'invigilator')
   @Post('sync')
+  @ApiOperation({
+    summary: 'Push and Pull offline attendance records',
+    description: 'Synchronizes attendance records captured by a device while operating offline. The device pushes its local records to the server, and if a lastSyncTimestamp is provided, it pulls down any attendance records that were modified by other devices while it was offline.',
+  })
+  @ApiResponse({ status: 201, description: 'Offline records synced successfully' })
+  @ApiResponse({ status: 400, description: 'Bad Request (e.g. no offline records provided or invalid student)' })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async syncOfflineRecords(@Body() syncDto: SyncOfflineDto, @Request() req) {
     try {

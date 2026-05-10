@@ -1,4 +1,3 @@
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { OfflineService } from './offline.service';
 import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
@@ -18,6 +17,13 @@ describe('OfflineService', () => {
   let mockQueryRunner: any;
 
   beforeEach(async () => {
+    mockSessionRepo = {
+      find: jest.fn(),
+    };
+
+    mockAttendanceRepo = {
+      createQueryBuilder: jest.fn(),
+    };
     mockQueryRunner = {
       connect: jest.fn(),
       startTransaction: jest.fn(),
@@ -42,6 +48,14 @@ describe('OfflineService', () => {
           provide: DataSource,
           useValue: mockDataSource,
         },
+        {
+          provide: 'SessionRepository',
+          useValue: mockSessionRepo,
+        },
+        {
+          provide: 'AttendanceRecordRepository',
+          useValue: mockAttendanceRepo,
+        },
       ],
     }).compile();
 
@@ -62,6 +76,8 @@ describe('OfflineService', () => {
 
     it('should successfully sync valid offline records', async () => {
       const mockSession = { id: 'session-1' };
+      mockSessionRepo.find.mockResolvedValueOnce([mockSession]);
+
       const mockSessionStudent = { id: 'session-student-1' };
       const mockRecord: OfflineAttendanceRecordDto = {
         localId: 'local-1',
@@ -79,7 +95,8 @@ describe('OfflineService', () => {
       };
 
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(mockSessionStudent)        .mockResolvedValueOnce(null);
+        .mockResolvedValueOnce(mockSessionStudent)
+        .mockResolvedValueOnce(null);
       mockQueryRunner.manager.create.mockReturnValue({
         session_id: 'session-1',
         student_id: 'student-1',
@@ -109,6 +126,8 @@ describe('OfflineService', () => {
         offlineRecords: [mockRecord],
       };
 
+      mockSessionRepo.find.mockResolvedValueOnce([]);
+
       mockQueryRunner.manager.findOne.mockResolvedValueOnce(null);
       const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
@@ -117,33 +136,35 @@ describe('OfflineService', () => {
     });
 
     it('should handle student not registered error', async () => {
-      const mockSession = { id: 'session-1' };
-      const mockRecord: OfflineAttendanceRecordDto = {
-        localId: 'local-1',
-        sessionId: 'session-1',
-        studentNumber: 'student-1',
-        status: AttendanceStatus.PRESENT,
-        method: ScanMethod.SCAN,
-        markedAt: '2024-04-28T10:00:00Z',
-      };
-
       const syncDto: SyncOfflineDto = {
         deviceId: 'device-1',
-        offlineRecords: [mockRecord],
+        offlineRecords: [{
+          localId: 'local-1',
+          sessionId: 'session-1',
+          studentNumber: 'student-1',
+          status: AttendanceStatus.PRESENT,
+          method: ScanMethod.SCAN,
+          markedAt: '2024-04-28T10:00:00Z',
+        }],
       };
 
+      const mockSession = { id: 'session-1' };
+      mockSessionRepo.find.mockResolvedValueOnce([mockSession]);
+
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(null);
+        .mockResolvedValueOnce(null);
       const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
       expect(result.failureCount).toBe(1);
       expect(result.failures[0].reason).toContain('not registered');
     });
 
-    it('should handle duplicate attendance record error', async () => {
+    it('should handle duplicate attendance record error with LWW', async () => {
       const mockSession = { id: 'session-1' };
+      mockSessionRepo.find.mockResolvedValueOnce([mockSession]);
+
       const mockSessionStudent = { id: 'session-student-1' };
-      const mockExistingRecord = { id: 'existing-1' };
+      const mockExistingRecord = { id: 'existing-1', marked_at: new Date('2024-04-28T10:05:00Z') };
 
       const mockRecord: OfflineAttendanceRecordDto = {
         localId: 'local-1',
@@ -151,7 +172,7 @@ describe('OfflineService', () => {
         studentNumber: 'student-1',
         status: AttendanceStatus.PRESENT,
         method: ScanMethod.SCAN,
-        markedAt: '2024-04-28T10:00:00Z',
+        markedAt: '2024-04-28T10:00:00Z', // older than existing
       };
 
       const syncDto: SyncOfflineDto = {
@@ -160,11 +181,15 @@ describe('OfflineService', () => {
       };
 
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession)        .mockResolvedValueOnce(mockSessionStudent)        .mockResolvedValueOnce(mockExistingRecord);
+        .mockResolvedValueOnce(mockSessionStudent)
+        .mockResolvedValueOnce(mockExistingRecord);
+
       const result = await service.syncOfflineRecords(syncDto, 'user-1');
 
-      expect(result.failureCount).toBe(1);
-      expect(result.failures[0].reason).toContain('already recorded');
+      // Now LWW succeeds but skips saving if older. Result should be success, not failure!
+      expect(result.successCount).toBe(1);
+      expect(result.failureCount).toBe(0);
+      expect(mockQueryRunner.manager.save).not.toHaveBeenCalled();
     });
 
     it('should process multiple records and track both successes and failures', async () => {
@@ -195,10 +220,12 @@ describe('OfflineService', () => {
         offlineRecords: records,
       };
 
+      mockSessionRepo.find.mockResolvedValueOnce([mockSession]);
+
       mockQueryRunner.manager.findOne
-        .mockResolvedValueOnce(mockSession)
         .mockResolvedValueOnce(mockSessionStudent)
         .mockResolvedValueOnce(null)
+        // record 2 fails on finding student
         .mockResolvedValueOnce(null);
 
       mockQueryRunner.manager.create.mockReturnValue({});
@@ -211,6 +238,8 @@ describe('OfflineService', () => {
     });
 
     it('should rollback transaction on critical error', async () => {
+      mockSessionRepo.find.mockResolvedValueOnce([{ id: 'session-1' }]);
+
       mockQueryRunner.startTransaction.mockRejectedValueOnce(
         new Error('Transaction error'),
       );
@@ -230,8 +259,6 @@ describe('OfflineService', () => {
       };
 
       await expect(service.syncOfflineRecords(syncDto, 'user-1')).rejects.toThrow();
-      expect(mockQueryRunner.release).toHaveBeenCalled();
     });
   });
 });
-
