@@ -9,7 +9,6 @@ import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { BulkMarkAttendanceDto } from './dto/bulk-mark-attendance.dto';
 import { AttendanceQueryDto } from './dto/attendance-query.dto';
-import { User } from '../auth/entities/users.entity';
 
 @Injectable()
 export class AttendanceService {
@@ -22,14 +21,9 @@ export class AttendanceService {
     private readonly sessionStudentRepository: Repository<SessionStudent>,
     @InjectRepository(Session)
     private readonly sessionRepository: Repository<Session>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
   ) {}
 
   async markAttendance(dto: CreateAttendanceDto, userId: string): Promise<AttendanceRecord> {
-  const user = await this.userRepository.findOne({ where: { id: userId } });
-  const staffId = user?.staff_id || userId;
-
   const sessionStudent = await this.sessionStudentRepository.findOne({
     where: { student_number: dto.student_number, session_id: dto.session_id },
   });
@@ -45,17 +39,16 @@ export class AttendanceService {
   const now = new Date();
 
   if (!existing) {
-    // First scan → PRESENT or LATE
     const status = now > session.scheduled_start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
     const record = this.attendanceRepository.create({ 
       ...dto, 
       session_student_id: sessionStudent.student_number,
       status, 
       marked_at: now,
-      marked_by: staffId
+      marked_by: userId
     });
     const saved = await this.attendanceRepository.save(record);
-    await this.logAudit(userId || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
+    await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
     return saved;
   }
 
@@ -63,12 +56,10 @@ export class AttendanceService {
     throw new ConflictException('Student has already completed this session');
   }
 
-  // Second scan → update to COMPLETED
   existing.status = AttendanceStatus.COMPLETED;
   existing.marked_at = now;
-  existing.marked_by = staffId;
   const saved = await this.attendanceRepository.save(existing);
-  await this.logAudit(userId || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
+  await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
   return saved;
 }
 
@@ -95,7 +86,6 @@ export class AttendanceService {
 
     const saved = await this.attendanceRepository.save(record);
 
-    // audit log
     await this.logAudit(updatedBy || 'system', 'UPDATE_ATTENDANCE', 'attendance_record', saved.id);
 
     return saved;

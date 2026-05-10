@@ -7,7 +7,6 @@ import { Reflector } from '@nestjs/core';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Set global API prefix
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
@@ -20,7 +19,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  // Swagger setup
   const config = new DocumentBuilder()
     .setTitle('Digital Exam Attendance API')
     .setDescription('API documentation')

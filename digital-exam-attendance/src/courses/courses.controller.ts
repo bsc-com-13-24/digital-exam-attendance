@@ -27,8 +27,6 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) { }
 
-  //  COURSE ENDPOINTS  -> /courses/
-
   @Roles('admin', 'teacher')
   @Post()
   async createCourse(

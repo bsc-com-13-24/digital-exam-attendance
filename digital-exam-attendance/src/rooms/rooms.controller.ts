@@ -8,12 +8,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
-/**
- * RoomsController handles all HTTP requests under /api/v1/rooms.
- *
- * Everything here requires a valid JWT token. Role-based guards
- * then further restrict which users can do what.
- */
 @ApiTags('Rooms')
 @ApiBearerAuth('bearer')
 @Controller('rooms')

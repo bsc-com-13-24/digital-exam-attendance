@@ -23,7 +23,7 @@ export interface SyncResult {
     localId: string;
     reason: string;
   }>;
-} 
+}
 
 export class OfflineAttendanceRecordDto {
   @IsString()

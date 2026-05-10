@@ -18,7 +18,6 @@ describe('OfflineService', () => {
   let mockQueryRunner: any;
 
   beforeEach(async () => {
-    // setup mocks
     mockQueryRunner = {
       connect: jest.fn(),
       startTransaction: jest.fn(),
@@ -200,7 +199,6 @@ describe('OfflineService', () => {
         .mockResolvedValueOnce(mockSession)
         .mockResolvedValueOnce(mockSessionStudent)
         .mockResolvedValueOnce(null)
-        // record 2 fails
         .mockResolvedValueOnce(null);
 
       mockQueryRunner.manager.create.mockReturnValue({});
