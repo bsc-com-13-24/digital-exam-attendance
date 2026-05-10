@@ -52,6 +52,12 @@ exports.OfflineController = OfflineController;
 __decorate([
     (0, roles_decorator_1.Roles)('admin', 'teacher', 'invigilator'),
     (0, common_1.Post)('sync'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Push and Pull offline attendance records',
+        description: 'Synchronizes attendance records captured by a device while operating offline. The device pushes its local records to the server, and if a lastSyncTimestamp is provided, it pulls down any attendance records that were modified by other devices while it was offline.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Offline records synced successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad Request (e.g. no offline records provided or invalid student)' }),
     (0, common_1.UsePipes)(new common_1.ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
