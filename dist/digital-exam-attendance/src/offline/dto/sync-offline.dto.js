@@ -74,6 +74,7 @@ __decorate([
 class SyncOfflineDto {
     deviceId;
     offlineRecords;
+    lastSyncTimestamp;
 }
 exports.SyncOfflineDto = SyncOfflineDto;
 __decorate([
@@ -89,4 +90,10 @@ __decorate([
     (0, class_transformer_1.Type)(() => OfflineAttendanceRecordDto),
     __metadata("design:type", Array)
 ], SyncOfflineDto.prototype, "offlineRecords", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Timestamp of the last successful sync', required: false }),
+    (0, class_validator_1.IsISO8601)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], SyncOfflineDto.prototype, "lastSyncTimestamp", void 0);
 //# sourceMappingURL=sync-offline.dto.js.map

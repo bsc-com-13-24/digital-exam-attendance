@@ -8,15 +8,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OfflineModule = void 0;
 const common_1 = require("@nestjs/common");
+const typeorm_1 = require("@nestjs/typeorm");
 const offline_service_1 = require("./offline.service");
 const offline_controller_1 = require("./offline.controller");
 const auth_module_1 = require("../auth/auth.module");
+const sessions_entity_1 = require("../session/entities/sessions.entity");
+const attendance_records_entity_1 = require("../attendance/entities/attendance-records.entity");
 let OfflineModule = class OfflineModule {
 };
 exports.OfflineModule = OfflineModule;
 exports.OfflineModule = OfflineModule = __decorate([
     (0, common_1.Module)({
-        imports: [auth_module_1.AuthModule],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([sessions_entity_1.Session, attendance_records_entity_1.AttendanceRecord]),
+            auth_module_1.AuthModule
+        ],
         providers: [offline_service_1.OfflineService],
         controllers: [offline_controller_1.OfflineController],
         exports: [offline_service_1.OfflineService],

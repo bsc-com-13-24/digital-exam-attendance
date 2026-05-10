@@ -60,7 +60,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "email_verified", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'verification_token', length: 500, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'verification_token', type: 'varchar2', length: 500, nullable: true }),
     __metadata("design:type", Object)
 ], User.prototype, "verification_token", void 0);
 __decorate([

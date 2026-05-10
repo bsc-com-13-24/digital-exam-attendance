@@ -8,8 +8,10 @@ export interface SyncResult {
     failureCount: number;
     failures: Array<{
         localId: string;
+        code?: string;
         reason: string;
     }>;
+    serverUpdates?: any[];
 }
 export declare class OfflineAttendanceRecordDto {
     localId: string;
@@ -23,4 +25,5 @@ export declare class OfflineAttendanceRecordDto {
 export declare class SyncOfflineDto {
     deviceId: string;
     offlineRecords: OfflineAttendanceRecordDto[];
+    lastSyncTimestamp?: string;
 }
