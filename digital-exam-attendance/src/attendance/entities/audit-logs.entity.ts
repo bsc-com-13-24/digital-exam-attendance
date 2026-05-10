@@ -26,7 +26,7 @@ export class AuditLog {
   @Column({ name: 'entity_type', length: 50 })
   entity_type!: string;
 
-  @Column({ name: 'entity_id', type: 'uuid', nullable: true })
+  @Column({ name: 'entity_id', nullable: true })
   entity_id!: string;
 
   @CreateDateColumn({ name: 'created_at' })
