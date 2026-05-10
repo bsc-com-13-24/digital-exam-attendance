@@ -22,8 +22,10 @@ export interface SyncResult {
   failureCount: number;
   failures: Array<{
     localId: string;
+    code?: string;
     reason: string;
   }>;
+  serverUpdates?: any[];
 } 
 
 export class OfflineAttendanceRecordDto {
@@ -74,4 +76,9 @@ export class SyncOfflineDto {
   @ValidateNested({ each: true })
   @Type(() => OfflineAttendanceRecordDto)
   offlineRecords!: OfflineAttendanceRecordDto[];
+
+  @ApiProperty({ description: 'Timestamp of the last successful sync', required: false })
+  @IsISO8601()
+  @IsOptional()
+  lastSyncTimestamp?: string;
 }

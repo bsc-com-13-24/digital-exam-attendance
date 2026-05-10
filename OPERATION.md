@@ -586,6 +586,7 @@ Valid methods: `scan`, `manual`
 ```json
 {
   "deviceId": "Scanner-Device-001",
+  "lastSyncTimestamp": "2026-05-14T18:00:00Z",
   "offlineRecords": [
     {
       "localId": "local-uuid-001",
@@ -616,7 +617,21 @@ Valid methods: `scan`, `manual`
   "data": {
     "successCount": 1,
     "failureCount": 0,
-    "failures": []
+    "failures": [
+      {
+         "localId": "local-uuid-002",
+         "code": "STUDENT_NOT_REGISTERED",
+         "reason": "Student BSC/12/24 is not registered for session <session_uuid>"
+      }
+    ],
+    "serverUpdates": [
+      {
+         "id": "<record_uuid>",
+         "session_id": "<session_uuid>",
+         "status": "completed",
+         "marked_at": "2026-05-15T09:30:00Z"
+      }
+    ]
   }
 }
 ```
