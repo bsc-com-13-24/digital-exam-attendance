@@ -47,7 +47,7 @@ export class AttendanceRecord {
   status!: AttendanceStatus;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'marked_by', referencedColumnName: 'staff_id' })
+  @JoinColumn({ name: 'marked_by' })
   marked_by_user!: User;
 
   @Column({ name: 'marked_by', type: 'varchar2', length: 100, nullable: true })
