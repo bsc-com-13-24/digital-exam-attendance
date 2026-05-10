@@ -39,7 +39,6 @@ export class AttendanceService {
   const now = new Date();
 
   if (!existing) {
-    // First scan → PRESENT or LATE
     const status = now > session.scheduled_start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
     const record = this.attendanceRepository.create({ 
       ...dto, 
@@ -57,7 +56,6 @@ export class AttendanceService {
     throw new ConflictException('Student has already completed this session');
   }
 
-  // Second scan → update to COMPLETED
   existing.status = AttendanceStatus.COMPLETED;
   existing.marked_at = now;
   const saved = await this.attendanceRepository.save(existing);
@@ -88,7 +86,6 @@ export class AttendanceService {
 
     const saved = await this.attendanceRepository.save(record);
 
-    // audit log
     await this.logAudit(updatedBy || 'system', 'UPDATE_ATTENDANCE', 'attendance_record', saved.id);
 
     return saved;

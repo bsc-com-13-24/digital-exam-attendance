@@ -1,4 +1,3 @@
-// Request DTO for syncing offline records
 
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsUUID, IsEnum, IsOptional, IsISO8601 } from "class-validator";

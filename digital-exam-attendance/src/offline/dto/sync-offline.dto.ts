@@ -30,48 +30,48 @@ export class OfflineAttendanceRecordDto {
   @ApiProperty({description: 'Local ID for offline tracking', example: 'offline-001'})
   @IsString()
   @IsNotEmpty()
-  localId!: string; // Client-generated UUID for offline tracking
+  localId!: string;
 
   @ApiProperty({description: 'Session ID', example: 'session-001'})
   @IsUUID()
   @IsNotEmpty()
-  sessionId!: string; // Which exam session this record belongs to
+  sessionId!: string;
 
   @ApiProperty({description: 'Student registration number', example: 'BSC-COM-02-24'})
   @IsString()
   @IsNotEmpty()
-  studentNumber!: string; // Which student attended
+  studentNumber!: string;
 
   @ApiProperty({ enum: AttendanceStatus , description: 'Attendance status', example: 'present, absent or late'})
   @IsEnum(AttendanceStatus)
   @IsNotEmpty()
-  status!: AttendanceStatus; // present, absent, or late
+  status!: AttendanceStatus;
 
   @ApiProperty({ enum: ScanMethod , description: 'Scan or Manual'})
   @IsEnum(ScanMethod)
   @IsNotEmpty()
-  method!: ScanMethod; // scan or manual
+  method!: ScanMethod;
 
   @ApiProperty()
   @IsISO8601()
   @IsNotEmpty()
-  markedAt!: string; // ISO 8601 timestamp when marked
+  markedAt!: string;
 
   @ApiProperty({ required: false, description: 'Optional remarks if exam was incomplete', example: 'Student left early due to illness'})
   @IsString()
   @IsOptional()
-  remarks?: string; // Optional remarks if exam was incomplete
+  remarks?: string;
 }
 
 export class SyncOfflineDto {
   @ApiProperty({description: 'Device ID', example: 'scanner-001'})
   @IsString()
   @IsNotEmpty()
-  deviceId!: string; // Unique identifier for the offline device/scanner
+  deviceId!: string;
 
   @ApiProperty({ type: [OfflineAttendanceRecordDto] , description: 'Records synced from offline storage'})
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OfflineAttendanceRecordDto)
-  offlineRecords!: OfflineAttendanceRecordDto[]; // Records synced from offline storage
+  offlineRecords!: OfflineAttendanceRecordDto[];
 }
