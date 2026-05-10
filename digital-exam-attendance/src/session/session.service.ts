@@ -40,14 +40,12 @@ export class SessionService {
   ): Promise<Session> {
     const { course_codes, room_code, ...rest } = dto;
 
-    // Fetch courses by codes
     const courses: Course[] = [];
     for (const code of course_codes) {
       const course = await this.coursesService.getCourseByCode(code);
       courses.push(course);
     }
 
-    // Fetch room by code
     const room = await this.roomsService.getRoomByCode(room_code);
     if (!room.is_active) {
       throw new BadRequestException(
@@ -55,7 +53,6 @@ export class SessionService {
       );
     }
 
-    // 4. Validate room capacity
     if (dto.expected_students) {
       if (dto.expected_students > room.capacity) {
         throw new BadRequestException(
@@ -64,7 +61,6 @@ export class SessionService {
       }
     }
 
-    // 5. Check for room schedule conflicts
     await this.checkRoomConflicts(
       room.id,
       new Date(dto.scheduled_start),
@@ -176,7 +172,6 @@ export class SessionService {
       session.room_id = room.id;
     }
 
-    // Map venue if provided
     if (updateSessionDto.venue) {
       const room = await this.roomsService.getRoomByCodeOrName(updateSessionDto.venue);
       session.room = room;
@@ -184,7 +179,6 @@ export class SessionService {
       session.venue = room.name;
     }
 
-    // Apply other changes
     Object.assign(session, rest);
 
     return await this.sessionRepository.save(session);
@@ -202,22 +196,18 @@ export class SessionService {
     return { message: `Session ${id} deleted successfully` };
   }
 
-  // Alias used by the controller
   async deleteSession(id: string, userId: string): Promise<{ message: string }> {
     return this.removeSession(id, userId);
   }
 
-  // enrollment logic
   async enrollStudents(
     sessionId: string,
     dto: EnrollStudentsDto,
   ): Promise<SessionStudent[]> {
     const session = await this.getSessionById(sessionId);
 
-    // bulk process
     const enrollments: SessionStudent[] = [];
     for (const studentDto of dto.students) {
-      // avoid duplicates
       const existing = await this.sessionStudentRepository.findOne({
         where: {
           session_id: sessionId,
@@ -239,7 +229,6 @@ export class SessionService {
       return await this.sessionStudentRepository.save(enrollments);
     }
 
-    // fallback to existing
     return await this.getStudentsBySessionId(sessionId);
   }
 
@@ -249,7 +238,6 @@ export class SessionService {
     });
   }
 
-  // Alias used by the controller
   async getStudentsInSession(sessionId: string): Promise<SessionStudent[]> {
     return this.getStudentsBySessionId(sessionId);
   }

@@ -72,7 +72,6 @@ export class CoursesService {
     return { message: `Course ${id} deleted successfully` };
   }
 
-  // Aliases used by the controller
   async deleteCourse(id: string, userId: string): Promise<{ message: string }> {
     return this.removeCourse(id, userId);
   }

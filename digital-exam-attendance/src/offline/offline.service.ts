@@ -24,7 +24,6 @@ export class OfflineService {
       failures: [],
     };
 
-    // run in transaction
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -63,7 +62,6 @@ export class OfflineService {
     userId: string, 
     queryRunner: QueryRunner
   ): Promise<void> {
-    // session check
     const session = await queryRunner.manager.findOne(Session, {
       where: { id: record.sessionId },
     });
@@ -71,7 +69,6 @@ export class OfflineService {
       throw new NotFoundException(`Session ${record.sessionId} not found`);
     }
 
-    // student registration check
     const sessionStudent = await queryRunner.manager.findOne(SessionStudent, {
       where: {
         session_id: record.sessionId,
@@ -84,7 +81,6 @@ export class OfflineService {
       );
     }
 
-    // check for existing record
     const existingRecord = await queryRunner.manager.findOne(AttendanceRecord, {
       where: {
         session_id: record.sessionId,

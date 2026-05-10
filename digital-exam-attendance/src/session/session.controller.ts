@@ -22,12 +22,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
-/**
-  SessionController handles all HTTP requests under /api/v1/session.
- 
-  Everything here requires a valid JWT token. Role-based guards
-  then further restrict which users can do what.
- */
 @ApiTags('Sessions')
 @ApiBearerAuth('bearer')
 @Controller('sessions')
@@ -35,9 +29,8 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class SessionController {
   constructor(private readonly sessionService: SessionService) { }
 
-  //  SESSION ENDPOINTS  ->  /session
-
   @Roles('admin', 'teacher')
+
   @Post()
   async createSession(
     @Body() dto: CreateSessionDto,

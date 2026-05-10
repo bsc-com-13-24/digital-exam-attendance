@@ -15,7 +15,6 @@ export class SessionSchedulerService {
     async updateSessionStatuses() {
         const now = new Date();
 
-        // Move to 'expired' if the session has ended (handles both upcoming and active)
         await this.sessionRepository.update(
             {
                 status: In(['upcoming', 'active']),
@@ -24,7 +23,6 @@ export class SessionSchedulerService {
             { status: 'expired' },
         );
 
-        //Move 'upcoming' to 'active' if we are within the session window
         await this.sessionRepository.update(
             {
                 status: 'upcoming',

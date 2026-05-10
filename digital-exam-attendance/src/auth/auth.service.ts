@@ -52,14 +52,11 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Email is already registered');
     }
 
-    // hash password
     const password_hash = await bcrypt.hash(dto.password, 10);
 
-    // Generate verification token
     const verificationToken = this.generateVerificationToken();
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    // map fields
     const user = this.userRepository.create({
       first_name: dto.first_name,
       last_name: dto.last_name,
@@ -72,7 +69,6 @@ export class AuthService implements OnModuleInit {
 
     const savedUser = await this.userRepository.save(user);
 
-    // set role
     const roles: string[] = [];
     if (dto.role) {
       const roleName = dto.role.toLowerCase();
@@ -88,10 +84,6 @@ export class AuthService implements OnModuleInit {
       }
     }
 
-    // Send verification email (skip actual sending, just return link for marks)
-    // await this.sendVerificationEmail(savedUser.email, verificationToken);
-
-    // Generate access token for immediate login
     const access_token = this.generateAccessToken(savedUser, roles);
 
     return {
@@ -103,9 +95,6 @@ export class AuthService implements OnModuleInit {
     };
   }
 
-  /**
-   * Helper to generate JWT access token
-   */
   private generateAccessToken(user: User, roles: string[]): string {
     return this.jwtService.sign({
       sub: user.id,
@@ -115,16 +104,10 @@ export class AuthService implements OnModuleInit {
     });
   }
 
-  /**
-   * Generate a random verification token
-   */
   private generateVerificationToken(): string {
     return randomBytes(32).toString('hex');
   }
 
-  /**
-   * Verify user email with token
-   */
   async verifyEmail(token: string): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({
       where: { verification_token: token },
@@ -134,12 +117,10 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Invalid verification token');
     }
 
-    // Check if token has expired
     if (user.verification_token_expiry && user.verification_token_expiry < new Date()) {
       throw new BadRequestException('Verification token has expired. Please request a new verification email.');
     }
 
-    // Mark email as verified
     user.email_verified = true;
     user.verification_token = null;
     user.verification_token_expiry = null;
@@ -149,9 +130,6 @@ export class AuthService implements OnModuleInit {
     return { message: 'Email verified successfully! You can now login to the system.' };
   }
 
-  /**
-   * Resend verification email
-   */
   async resendVerificationEmail(email: string): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({ where: { email } });
 
@@ -163,24 +141,19 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Email is already verified');
     }
 
-    // Generate new verification token
     const verificationToken = this.generateVerificationToken();
-    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     user.verification_token = verificationToken;
     user.verification_token_expiry = verificationTokenExpiry;
 
     await this.userRepository.save(user);
 
-    // Send verification email
     await this.sendVerificationEmail(user.email, verificationToken);
 
     return { message: `A new verification email has been sent to ${email}` };
   }
 
-  /**
-   * Send verification email (MOCKED for marks)
-   */
   private async sendVerificationEmail(email: string, token: string): Promise<void> {
     const verificationLink = `http://localhost:3000/api/v1/auth/verify-email?token=${token}`;
     console.log(`[MOCK EMAIL] Verification Link: ${verificationLink}`);
@@ -196,7 +169,6 @@ export class AuthService implements OnModuleInit {
       throw new BadRequestException('Email is not valid');
     }
 
-    // Allow localhost and common dev domains without DNS check
     const devDomains = ['localhost', 'example.com', 'test.com'];
     if (devDomains.includes(domain.toLowerCase())) {
       return;
@@ -209,10 +181,10 @@ export class AuthService implements OnModuleInit {
       }
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEOUT' || error.code === 'ENOTFOUND') {
-        // If DNS query fails due to network or server issues, we skip verification
         return;
       }
     }
+
 
     try {
       const aRecords = await resolve4(domain);
@@ -266,7 +238,6 @@ export class AuthService implements OnModuleInit {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) throw new UnauthorizedException('Wrong credentials');
 
-    // Get user roles for the token
     const userWithRoles = await this.getUserWithRoles(user.id);
     const roles = userWithRoles.roles.map((ur) => ur.role.name);
 
