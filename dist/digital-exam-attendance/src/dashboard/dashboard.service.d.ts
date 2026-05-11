@@ -1,12 +1,7 @@
 import { Repository } from 'typeorm';
 import { Session } from '../session/entities/sessions.entity';
-<<<<<<< HEAD
 import { AttendanceRecord } from '../attendance/entities/attendance-records.entity';
 import { SessionStudent } from '../session/entities/session-students.entity';
-=======
-import { AttendanceRecord } from "../../../src/attendance/entities/attendance-records.entity";
-import { SessionStudent } from "../../../src/session/entities/session-students.entity";
->>>>>>> e61f5395b1872702d9047eb369344b7689e2169a
 export declare class DashboardService {
     private readonly sessionRepository;
     private readonly attendanceRepository;

@@ -41,14 +41,14 @@ let AttendanceService = class AttendanceService {
         if (!session)
             throw new common_1.NotFoundException('Session not found');
         const existing = await this.attendanceRepository.findOne({
-            where: { session_id: dto.session_id, session_student_id: sessionStudent.student_number },
+            where: { session_id: dto.session_id, session_student_id: sessionStudent.id },
         });
         const now = new Date();
         if (!existing) {
             const status = now > session.scheduled_start ? attendance_records_entity_1.AttendanceStatus.LATE : attendance_records_entity_1.AttendanceStatus.PRESENT;
             const record = this.attendanceRepository.create({
                 ...dto,
-                session_student_id: sessionStudent.student_number,
+                session_student_id: sessionStudent.id,
                 status,
                 marked_at: now,
                 marked_by: userId
