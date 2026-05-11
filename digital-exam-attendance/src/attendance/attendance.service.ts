@@ -33,7 +33,7 @@ export class AttendanceService {
     if (!session) throw new NotFoundException('Session not found');
 
     const existing = await this.attendanceRepository.findOne({
-      where: { session_id: dto.session_id, session_student_id: sessionStudent.id },
+      where: { session_id: dto.session_id, student_number: dto.student_number },
     });
 
     const now = new Date();
@@ -42,13 +42,12 @@ export class AttendanceService {
       const status = now > session.scheduled_start ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
       const record = this.attendanceRepository.create({ 
         ...dto, 
-        session_student_id: sessionStudent.id,
         status, 
         marked_at: now,
         marked_by: userId
       });
       const saved = await this.attendanceRepository.save(record);
-      await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
+      await this.logAudit(userId || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
       return saved;
     }
 
@@ -59,17 +58,17 @@ export class AttendanceService {
     existing.status = AttendanceStatus.COMPLETED;
     existing.marked_at = now;
     const saved = await this.attendanceRepository.save(existing);
-    await this.logAudit(userId || dto.marked_by || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
+    await this.logAudit(userId || 'system', 'MARK_ATTENDANCE', 'attendance_record', saved.id);
     return saved;
   }
 
   async bulkMarkAttendance(dto: BulkMarkAttendanceDto, userId: string): Promise<AttendanceRecord[]> {
     const records: AttendanceRecord[] = [];
     for (const recordDto of dto.records) {
-      if (recordDto.session_id !== dto.session_id) {
-        throw new BadRequestException('Session ID mismatch in bulk records');
-      }
-      const record = await this.markAttendance(recordDto, userId);
+      const record = await this.markAttendance({
+        ...recordDto,
+        session_id: dto.session_id,
+      } as any, userId);
       records.push(record);
     }
     return records;

@@ -27,9 +27,4 @@ export class CreateAttendanceDto {
     @IsString()
     @IsOptional()
     remarks?: string;
-
-    @ApiProperty({ example: '507f1f77-c864-4600-a9c6-f39868bc5678', description: 'User ID of marker', required: false })
-    @IsUUID()
-    @IsOptional()
-    marked_by?: string;
 }

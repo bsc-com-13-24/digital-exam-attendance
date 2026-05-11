@@ -1,17 +1,19 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateRoomDto } from './create-room.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsInt, MaxLength, Min, IsBoolean, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, Max, Min, IsBoolean, IsOptional } from 'class-validator';
 
 export class UpdateRoomDto extends PartialType(CreateRoomDto) {
     @ApiProperty({ example: 'B501', description: 'Updated unique code for the room' })
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     room_code!: string;
 
     @ApiProperty({ example: 'Science Lab', description: 'Updated name of the room' })
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     name!: string;
 
     @ApiProperty({ example: 'Main Building', nullable: true, description: 'Updated building location' })
@@ -22,11 +24,13 @@ export class UpdateRoomDto extends PartialType(CreateRoomDto) {
     @ApiProperty({ example: 40, description: 'Updated student capacity' })
     @IsInt()
     @Min(1)
-    @MaxLength(1000)
+    @Max(1000)
+    @IsOptional()
     capacity!: number;
 
     @ApiProperty({ example: true, description: 'Updated status of the room' })
     @IsBoolean()
+    @IsOptional()
     is_active!: boolean;
 
     @ApiProperty({ example: '507f1f77-c864-4600-a9c6-f39868bc1234', description: 'ID of the user performing the update' })

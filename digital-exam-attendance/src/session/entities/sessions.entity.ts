@@ -44,7 +44,7 @@ export class Session {
   })
   courses!: Course[];
 
-  @ManyToOne(() => Room, (room) => room.sessions, { nullable: true })
+  @ManyToOne(() => Room, (room) => room.sessions, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'room_id' })
   room!: Room;
 

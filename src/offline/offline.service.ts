@@ -97,7 +97,7 @@ export class OfflineService {
     const existingRecord = await queryRunner.manager.findOne(AttendanceRecord, {
       where: {
         session_id: record.sessionId,
-        session_student_id: sessionStudent.id,
+        student_number: record.studentNumber,
       },
     });
     if (existingRecord) {
@@ -109,7 +109,7 @@ export class OfflineService {
     // create record
     const attendanceRecord = queryRunner.manager.create(AttendanceRecord, {
       session_id: record.sessionId,
-      session_student_id: sessionStudent.id,
+      student_number: record.studentNumber,
       status: record.status,
       method: record.method,
       marked_at: new Date(record.markedAt),

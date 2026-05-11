@@ -20,7 +20,7 @@ export enum AttendanceStatus{
 }
 
 @Entity('attendance_records')
-@Unique(['session_id', 'session_student_id'])
+@Unique(['session_id', 'student_number'])
 export class AttendanceRecord {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -33,11 +33,14 @@ export class AttendanceRecord {
   session_id!: string;
 
   @ManyToOne(() => SessionStudent, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'session_student_id' })
+  @JoinColumn([
+    { name: 'session_id', referencedColumnName: 'session_id' },
+    { name: 'student_number', referencedColumnName: 'student_number' }
+  ])
   session_student!: SessionStudent;
 
-  @Column({ name: 'session_student_id' })
-  session_student_id!: string;
+  @Column({ name: 'student_number', length: 50 })
+  student_number!: string;
 
   @Column({ 
     type: 'varchar2',
